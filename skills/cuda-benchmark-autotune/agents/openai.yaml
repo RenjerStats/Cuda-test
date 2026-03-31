@@ -1,0 +1,4 @@
+interface:
+  display_name: "CUDA Benchmark Autotune"
+  short_description: "Run benchmark and autotune workflows for kernels."
+  default_prompt: "Use $cuda-benchmark-autotune to define benchmark and autotune work for this kernel."

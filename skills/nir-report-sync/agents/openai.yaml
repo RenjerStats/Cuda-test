@@ -1,0 +1,4 @@
+interface:
+  display_name: "NIR Report Sync"
+  short_description: "Keep code outputs aligned with the NIR report."
+  default_prompt: "Use $nir-report-sync to align this engineering output with the NIR materials in plan/."

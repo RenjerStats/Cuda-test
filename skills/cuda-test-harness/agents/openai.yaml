@@ -1,0 +1,4 @@
+interface:
+  display_name: "CUDA Test Harness"
+  short_description: "Design isolated CUDA kernel tests and fixtures."
+  default_prompt: "Use $cuda-test-harness to design isolated CUDA kernel tests for this feature."

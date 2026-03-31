@@ -1,0 +1,51 @@
+# Build directories
+/build/
+/build-*/
+/out/
+/cmake-build-*/
+
+# CMake and tool caches
+/CMakeUserPresets.json
+/.cache/
+
+# IDEs
+/.vs/
+/.idea/
+*.VC.db
+*.VC.opendb
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Python caches
+__pycache__/
+*.pyc
+
+# Compiler and linker outputs
+*.obj
+*.o
+*.pdb
+*.ilk
+*.idb
+*.exp
+*.lib
+*.dll
+*.exe
+*.out
+*.a
+*.so
+
+# CUDA and profiling artifacts
+*.cubin
+*.fatbin
+*.ptx
+*.nvvp
+*.nsight-rep
+*.qdrep
+
+# Temporary exports and generated evidence
+*.tmp
+*.bak
+reports/raw/*
+!reports/raw/.gitkeep
