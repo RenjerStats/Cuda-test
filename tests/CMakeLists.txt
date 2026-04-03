@@ -24,6 +24,7 @@ cuda_test_add_test(NAME core_types_test SOURCES unit/core/core_types_test.cpp)
 
 if(CUDA_TEST_HAS_CUDA)
   cuda_test_add_test(NAME core_cuda_runtime_test SOURCES unit/core/core_cuda_runtime_test.cpp)
+  cuda_test_add_test(NAME profiling_staged_timer_test SOURCES unit/profiling/staged_timer_test.cu)
 endif()
 
 # ---- Integration tests ----

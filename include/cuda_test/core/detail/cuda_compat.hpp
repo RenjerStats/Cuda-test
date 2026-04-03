@@ -3,7 +3,9 @@
 #include <cstddef>
 
 #if defined(CUDA_TEST_HAS_CUDA) && CUDA_TEST_HAS_CUDA
-#include <cuda_runtime_api.h>
+// Public profiling headers expose event and stream types, and the CUDA smoke tests use
+// kernel launch syntax. Pull in the full runtime header so both cases share one compat layer.
+#include <cuda_runtime.h>
 #else
 struct dim3 {
     unsigned int x;
@@ -16,6 +18,8 @@ struct dim3 {
 };
 
 using cudaError_t = int;
+using cudaEvent_t = void*;
+using cudaStream_t = void*;
 
 inline constexpr cudaError_t cudaSuccess = 0;
 inline constexpr cudaError_t cudaErrorInvalidValue = 1;

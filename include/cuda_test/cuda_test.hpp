@@ -9,6 +9,7 @@
 #include "cuda_test/core/device_memory.hpp"
 #include "cuda_test/core/error.hpp"
 #include "cuda_test/core/types.hpp"
+#include "cuda_test/profiling/staged_timer.hpp"
 
 namespace cuda_test {
 namespace detail {
