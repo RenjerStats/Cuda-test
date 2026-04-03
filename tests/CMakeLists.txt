@@ -34,6 +34,7 @@ cuda_test_add_test(NAME testing_validation_test SOURCES unit/testing/validation_
 
 if(CUDA_TEST_HAS_CUDA)
   cuda_test_add_test(NAME core_cuda_runtime_test SOURCES unit/core/core_cuda_runtime_test.cpp)
+  cuda_test_add_test(NAME kernel_integration_test SOURCES integration/kernel_integration_test.cu)
   cuda_test_add_test(NAME profiling_staged_timer_test SOURCES unit/profiling/staged_timer_test.cu)
   cuda_test_add_test(NAME testing_kernel_fixture_test SOURCES unit/testing/kernel_test_fixture_test.cu)
 endif()

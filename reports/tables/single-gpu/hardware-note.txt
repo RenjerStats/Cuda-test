@@ -1,0 +1,2 @@
+Phase 7 evidence was collected on one available GPU: NVIDIA GeForce RTX 4070 Laptop GPU (device_id=0).
+A second-GPU run is deferred because the current laptop environment exposes only one NVIDIA GPU.

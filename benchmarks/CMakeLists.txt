@@ -18,3 +18,16 @@ function(cuda_test_add_benchmark)
 endfunction()
 
 cuda_test_add_benchmark(NAME benchmark_runner_smoke SOURCES benchmark_runner_smoke.cpp)
+
+if(CUDA_TEST_HAS_CUDA)
+  add_executable(kernel_integration_runner kernels/kernel_integration_runner.cu)
+  target_include_directories(kernel_integration_runner
+    PRIVATE
+      ${PROJECT_SOURCE_DIR}
+  )
+  target_link_libraries(kernel_integration_runner
+    PRIVATE
+      cuda_test::cuda_test
+  )
+  add_dependencies(cuda_test_benchmarks kernel_integration_runner)
+endif()
