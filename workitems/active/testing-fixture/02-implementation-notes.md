@@ -3,10 +3,12 @@
 ## Summary
 
 Реализован `testing`-слой для изолированных CUDA unit-тестов: добавлены `KernelTestFixture`, validation helpers и полный пример теста для `vector add` kernel с CPU reference. Testing-заголовки оставлены отдельным публичным модулем и не подключаются в `cuda_test.hpp`, чтобы не протаскивать зависимость на Google Test в общий runtime include path.
+После review ветка `task/testing-fixture` перебазирована на `task/profiling-timer`, чтобы Phase 3 включала уже принятый profiling-слой. Во время интеграционной перепроверки также стабилизирован `StagedTimerTest.KernelTimingRemainsReasonablyStable`: таймер теперь меряет более длинное kernel window за счёт повторных запусков ядра внутри одного измерения.
 
 ## Files And Modules
 
 - Files touched:
+  - `tests/unit/profiling/staged_timer_test.cu`
   - `include/cuda_test/testing/kernel_test_fixture.hpp`
   - `include/cuda_test/testing/validation.hpp`
   - `tests/fixtures/vector_add_fixture.hpp`
@@ -25,19 +27,21 @@
 
 - No functional deviations.
 - `KernelTestFixture` kept header-only for now because the phase only needs lightweight helpers around `core` primitives and GTest fixture setup.
+- Integration remediation after review: branch rebased from `task/core-types` to `task/profiling-timer`.
 
 ## Validation
 
 - Commands run:
+  - `git rebase task/profiling-timer`
   - `C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe --preset msvc`
   - `C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe --preset msvc-cuda`
-  - `C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe --build build/msvc --target testing_validation_test`
-  - `C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe --build build/msvc-cuda --target testing_kernel_fixture_test`
+  - `C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe --build build/msvc --target core_types_test testing_validation_test`
+  - `C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe --build build/msvc-cuda --target core_types_test core_cuda_runtime_test profiling_staged_timer_test testing_validation_test testing_kernel_fixture_test`
   - `C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\ctest.exe --test-dir build/msvc -C Debug --output-on-failure -R "KernelLaunchConfigTest|ProfilingBreakdownTest|RunStatsTest|ValidationTest"`
-  - `C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\ctest.exe --test-dir build/msvc-cuda -C Debug --output-on-failure -R "KernelLaunchConfigTest|ProfilingBreakdownTest|RunStatsTest|CheckCudaTest|DeviceMemoryTest|DeviceInfoTest|ValidationTest|VectorAddKernelTest"`
+  - `C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\ctest.exe --test-dir build/msvc-cuda -C Debug --output-on-failure -R "KernelLaunchConfigTest|ProfilingBreakdownTest|RunStatsTest|CheckCudaTest|DeviceMemoryTest|DeviceInfoTest|StagedTimerTest|ValidationTest|VectorAddKernelTest"`
 - Result summary:
   - `msvc` configure/build succeeded; `8/8` selected tests passed.
-  - `msvc-cuda` configure/build succeeded; `13/13` selected tests passed, including `vector add` correctness on GPU.
+  - `msvc-cuda` configure/build succeeded on the rebased branch; `24/24` selected tests passed across core + profiling + testing, including profiling consistency and `vector add` correctness on GPU.
 
 ## Follow-Ups
 

@@ -59,7 +59,9 @@ protected:
         return data;
     }
 
-    core::ProfilingBreakdown run_with_named_wrappers(StagedTimer& timer, std::size_t size) {
+    core::ProfilingBreakdown run_with_named_wrappers(StagedTimer& timer,
+                                                     std::size_t size,
+                                                     int kernel_repeats = 1) {
         const std::vector<float> input = make_input(size);
         core::DeviceMemory<float> device_input(size);
         core::DeviceMemory<float> device_output(size);
@@ -72,7 +74,9 @@ protected:
         timer.stop_h2d();
 
         timer.start_kernel();
-        increment_kernel<<<grid, block>>>(device_input.data(), device_output.data(), size);
+        for (int iteration = 0; iteration < kernel_repeats; ++iteration) {
+            increment_kernel<<<grid, block>>>(device_input.data(), device_output.data(), size);
+        }
         CUDA_CHECK(cudaGetLastError());
         CUDA_CHECK(cudaDeviceSynchronize());
         timer.stop_kernel();
@@ -149,12 +153,14 @@ TEST_F(StagedTimerTest, KernelTimingRemainsReasonablyStable) {
     std::vector<double> kernel_samples;
     kernel_samples.reserve(10);
     constexpr std::size_t stability_size = 1u << 20;
+    constexpr int kernel_repeats = 32;
 
-    (void)run_with_named_wrappers(timer, stability_size);
+    (void)run_with_named_wrappers(timer, stability_size, kernel_repeats);
     timer.reset();
 
     for (int iteration = 0; iteration < 10; ++iteration) {
-        const core::ProfilingBreakdown breakdown = run_with_named_wrappers(timer, stability_size);
+        const core::ProfilingBreakdown breakdown =
+            run_with_named_wrappers(timer, stability_size, kernel_repeats);
         kernel_samples.push_back(breakdown.kernel_ms);
         timer.reset();
     }
