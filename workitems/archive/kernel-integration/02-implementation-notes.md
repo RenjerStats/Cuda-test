@@ -15,9 +15,9 @@
   - `benchmarks/kernels/kernel_integration_runner.cu`
   - `tests/CMakeLists.txt`
   - `benchmarks/CMakeLists.txt`
-  - `workitems/active/kernel-integration/00-feature-packet.md`
-  - `workitems/active/kernel-integration/01-test-contract.md`
-  - `workitems/active/kernel-integration/03-review-report.md`
+  - `workitems/archive/kernel-integration/00-feature-packet.md`
+  - `workitems/archive/kernel-integration/01-test-contract.md`
+  - `workitems/archive/kernel-integration/03-review-report.md`
 - Modules touched:
   - integration path across `testing`, `profiling`, `benchmark`, `autotune`, `analysis`, `reporting`
   - internal examples / fixtures / integration-runner layer
@@ -58,3 +58,4 @@
 - Deferred work:
   - repeat the same report-generation flow on a second NVIDIA GPU when such hardware becomes available
   - replace bundled representative kernels with real course-project kernels once that external codebase is connected to this repository
+

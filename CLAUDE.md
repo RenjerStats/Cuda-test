@@ -10,14 +10,14 @@ GPT is the **lead** (see `agents/gpt-lead.md`).
 ## Before Every Task
 
 1. Read `AGENTS.md` for global rules, stage-gate workflow, and module boundaries.
-2. Read the active work item packet under `workitems/active/<task-name>/`.
+2. Read the current task packet under `workitems/active/<task-name>/`; for accepted historical tasks, read the archived packet under `workitems/archive/<task-name>/`.
 3. Read `plan/Пояснительная записка.md` when requirements context is needed.
 
 ## Review Protocol
 
 - Review against the diff (`git diff main...task/<branch>`), not the full tree.
 - Classify findings as `blocker`, `major`, or `minor`.
-- Fill `workitems/active/<task-name>/03-review-report.md` with findings and decision.
+- Fill `workitems/active/<task-name>/03-review-report.md` during review; after acceptance the packet may be archived under `workitems/archive/<task-name>/`.
 - Do NOT approve work that skipped `spec → tests → implementation → review`.
 
 ## Code Conventions

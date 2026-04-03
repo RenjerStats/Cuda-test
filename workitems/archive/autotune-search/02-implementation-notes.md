@@ -11,9 +11,9 @@
   - `include/cuda_test/cuda_test.hpp`
   - `tests/unit/autotune/autotune_search_test.cpp`
   - `tests/CMakeLists.txt`
-  - `workitems/active/autotune-search/00-feature-packet.md`
-  - `workitems/active/autotune-search/01-test-contract.md`
-  - `workitems/active/autotune-search/03-review-report.md`
+  - `workitems/archive/autotune-search/00-feature-packet.md`
+  - `workitems/archive/autotune-search/01-test-contract.md`
+  - `workitems/archive/autotune-search/03-review-report.md`
 - Modules touched:
   - `autotune`
   - umbrella public include surface
@@ -48,3 +48,4 @@
   - baseline-vs-winner reporting
   - real CUDA autotune evidence for course kernels
   - richer candidate constraints such as occupancy heuristics or multi-dimensional launch search
+

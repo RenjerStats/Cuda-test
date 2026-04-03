@@ -2,7 +2,7 @@
 
 ## Linkage
 
-- Related feature packet: `workitems/active/profiling-timer/00-feature-packet.md`
+- Related feature packet: `workitems/archive/profiling-timer/00-feature-packet.md`
 - Reviewer: Claude
 
 ## Correctness Scenarios
@@ -42,3 +42,4 @@
 - Unit or integration tests: `tests/unit/profiling/` covering default state, smoke, reset/reuse, and consistency behavior
 - Benchmark output: none for this phase
 - Report artifacts: none for this phase
+

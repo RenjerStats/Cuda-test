@@ -13,9 +13,9 @@
   - `tests/unit/analysis/metrics_test.cpp`
   - `tests/unit/reporting/export_test.cpp`
   - `tests/CMakeLists.txt`
-  - `workitems/active/analysis-reporting/00-feature-packet.md`
-  - `workitems/active/analysis-reporting/01-test-contract.md`
-  - `workitems/active/analysis-reporting/03-review-report.md`
+  - `workitems/archive/analysis-reporting/00-feature-packet.md`
+  - `workitems/archive/analysis-reporting/01-test-contract.md`
+  - `workitems/archive/analysis-reporting/03-review-report.md`
 - Modules touched:
   - `analysis`
   - `reporting`
@@ -51,3 +51,4 @@
   - accepted evidence generation under `reports/`
   - report import/parsing APIs
   - additional derived metrics beyond `transfer_compute_ratio`
+

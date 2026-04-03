@@ -16,8 +16,8 @@
   - `tests/unit/testing/kernel_test_fixture_test.cu`
   - `tests/CMakeLists.txt`
   - `cmake/Warnings.cmake`
-  - `workitems/active/testing-fixture/00-feature-packet.md`
-  - `workitems/active/testing-fixture/01-test-contract.md`
+  - `workitems/archive/testing-fixture/00-feature-packet.md`
+  - `workitems/archive/testing-fixture/01-test-contract.md`
 - Modules touched:
   - `testing`
   - shared test registration infrastructure
@@ -50,3 +50,4 @@
 - Deferred work:
   - DSL macros such as `CUDA_EXPECT_ARRAY_NEAR`
   - richer fixture helpers for multi-buffer kernels from the course project
+

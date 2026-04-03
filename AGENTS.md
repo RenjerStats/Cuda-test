@@ -8,9 +8,10 @@ Read these sources in order when requirements conflict:
 
 1. The explanatory note in `plan/`
 2. The NIR assignment note in `plan/`
-3. The approved work item packet in `workitems/active/<task-name>/`
+3. The current task packet in `workitems/active/<task-name>/`, or the accepted packet in `workitems/archive/<task-name>/` once the task is closed
 
 Treat `plan/` as the research source of truth. Treat git history as the implementation source of truth.
+Treat `workitems/active/` as the in-flight stage-gate workspace and `workitems/archive/` as accepted task history.
 
 ## Permanent Roles
 
@@ -29,6 +30,7 @@ Complete work in this order:
 2. Create `workitems/active/<task-name>/01-test-contract.md`.
 3. Implement the change and track deviations in `02-implementation-notes.md`.
 4. Record review findings and disposition in `03-review-report.md`.
+5. After acceptance, move the completed packet to `workitems/archive/<task-name>/`.
 
 Do not merge to `main` until the full gate is complete: `spec -> tests -> implementation -> review`.
 

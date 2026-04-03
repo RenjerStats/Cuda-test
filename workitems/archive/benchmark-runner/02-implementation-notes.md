@@ -15,9 +15,9 @@
   - `tests/CMakeLists.txt`
   - `benchmarks/CMakeLists.txt`
   - `benchmarks/benchmark_runner_smoke.cpp`
-  - `workitems/active/benchmark-runner/00-feature-packet.md`
-  - `workitems/active/benchmark-runner/01-test-contract.md`
-  - `workitems/active/benchmark-runner/03-review-report.md`
+  - `workitems/archive/benchmark-runner/00-feature-packet.md`
+  - `workitems/archive/benchmark-runner/01-test-contract.md`
+  - `workitems/archive/benchmark-runner/03-review-report.md`
 - Modules touched:
   - `benchmark`
   - umbrella public include surface
@@ -57,3 +57,4 @@
   - real CUDA benchmark fixtures for course kernels
   - report export for benchmark/autotune evidence
   - autotune candidate ranking on top of `BenchmarkRunner`
+

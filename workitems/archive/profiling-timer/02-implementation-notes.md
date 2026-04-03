@@ -13,8 +13,8 @@
   - `tests/CMakeLists.txt`
   - `tests/unit/profiling/staged_timer_test.cu`
   - `cmake/Warnings.cmake`
-  - `workitems/active/profiling-timer/00-feature-packet.md`
-  - `workitems/active/profiling-timer/01-test-contract.md`
+  - `workitems/archive/profiling-timer/00-feature-packet.md`
+  - `workitems/archive/profiling-timer/01-test-contract.md`
 - Modules touched:
   - `profiling`
   - test registration infrastructure
@@ -46,3 +46,4 @@
 - Deferred work:
   - integrate `StagedTimer` into benchmark/autotune runners
   - decide whether CUDA-specific warning suppression should be narrowed further for nvcc + gtest builds
+

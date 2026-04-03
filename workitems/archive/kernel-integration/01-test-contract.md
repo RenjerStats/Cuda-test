@@ -2,7 +2,7 @@
 
 ## Linkage
 
-- Related feature packet: `workitems/active/kernel-integration/00-feature-packet.md`
+- Related feature packet: `workitems/archive/kernel-integration/00-feature-packet.md`
 - Reviewer: Claude
 
 ## Correctness Scenarios
@@ -50,3 +50,4 @@
 - Unit or integration tests: `tests/integration/` correctness tests for the six kernels
 - Benchmark output: one runner in `benchmarks/kernels/` generates per-kernel CSV/JSON outputs
 - Report artifacts: generated files under `reports/tables/` for the single available GPU plus a summary file that lists the six kernels and their winning configurations
+

@@ -2,7 +2,7 @@
 
 ## Linkage
 
-- Related feature packet: `workitems/active/analysis-reporting/00-feature-packet.md`
+- Related feature packet: `workitems/archive/analysis-reporting/00-feature-packet.md`
 - Reviewer: Claude
 
 ## Correctness Scenarios
@@ -40,3 +40,4 @@
 - Unit or integration tests: `tests/unit/analysis/` and `tests/unit/reporting/` cover metric semantics and export contents
 - Benchmark output: none for this phase
 - Report artifacts: none for this phase
+

@@ -19,6 +19,12 @@
 - Use `git diff --staged` for staged review.
 - Reference the reviewed diff in `03-review-report.md`.
 
+## Work Item Lifecycle
+
+- Keep only in-flight packets under `workitems/active/`.
+- After the review is accepted and follow-up fixes are committed, move the packet to `workitems/archive/<short-name>/`.
+- Use archived packets as the historical review/specification record for completed tasks.
+
 ## Milestones
 
 Create annotated local tags for meaningful checkpoints, for example:

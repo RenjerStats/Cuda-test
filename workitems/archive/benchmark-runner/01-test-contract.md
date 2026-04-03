@@ -2,7 +2,7 @@
 
 ## Linkage
 
-- Related feature packet: `workitems/active/benchmark-runner/00-feature-packet.md`
+- Related feature packet: `workitems/archive/benchmark-runner/00-feature-packet.md`
 - Reviewer: Claude
 
 ## Correctness Scenarios
@@ -43,3 +43,4 @@
 - Unit or integration tests: `tests/unit/benchmark/` covers stats formulas, runner aggregation, and negative configuration cases
 - Benchmark output: one Google Benchmark smoke target under `benchmarks/` builds successfully
 - Report artifacts: none for this phase
+

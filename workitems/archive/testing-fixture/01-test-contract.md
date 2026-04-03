@@ -2,7 +2,7 @@
 
 ## Linkage
 
-- Related feature packet: `workitems/active/testing-fixture/00-feature-packet.md`
+- Related feature packet: `workitems/archive/testing-fixture/00-feature-packet.md`
 - Reviewer: Claude
 
 ## Correctness Scenarios
@@ -43,3 +43,4 @@
 - Unit or integration tests: `tests/unit/testing/` covers validation helpers, launch config helper, and vector-add kernel correctness
 - Benchmark output: none for this phase
 - Report artifacts: none for this phase
+

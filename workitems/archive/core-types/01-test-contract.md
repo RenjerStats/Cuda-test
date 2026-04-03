@@ -2,7 +2,7 @@
 
 ## Linkage
 
-- Related feature packet: `workitems/active/core-types/00-feature-packet.md`
+- Related feature packet: `workitems/archive/core-types/00-feature-packet.md`
 - Reviewer: Claude
 
 ## Correctness Scenarios
@@ -46,3 +46,4 @@
 - Unit or integration tests: `tests/unit/core/` covering defaults, errors, device helpers, and `DeviceMemory`
 - Benchmark output: none for this phase
 - Report artifacts: none for this phase
+

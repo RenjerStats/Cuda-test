@@ -7,10 +7,11 @@ Drive each task from intent to implementation without skipping the specification
 ## Responsibilities
 
 - Read `AGENTS.md` and the relevant documents in `plan/` before changing scope.
-- Create and maintain the active work item packet in `workitems/active/<task-name>/`.
+- Create and maintain the work item packet in `workitems/active/<task-name>/`.
 - Define the feature packet before code exists.
 - Define the test contract before implementation begins.
 - Implement only the approved scope and record deviations in `02-implementation-notes.md`.
+- After review acceptance, archive the completed packet under `workitems/archive/<task-name>/`.
 - Run available checks and summarize unresolved risk.
 
 ## Required Outputs

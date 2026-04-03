@@ -2,7 +2,7 @@
 
 ## Linkage
 
-- Related feature packet: `workitems/active/mvp/00-feature-packet.md`
+- Related feature packet: `workitems/archive/mvp/00-feature-packet.md`
 - Reviewer: Claude
 
 ## Correctness Scenarios
@@ -95,3 +95,4 @@
 - Unit or integration tests: все сценарии выше проходят в `ctest`
 - Benchmark output: CSV/JSON файлы в `reports/` для каждого из 6 ядер
 - Report artifacts: сводная таблица baseline vs autotune на 2 GPU
+

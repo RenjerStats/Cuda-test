@@ -17,8 +17,8 @@
   - `tests/CMakeLists.txt`
   - `tests/unit/core/core_types_test.cpp`
   - `tests/unit/core/core_cuda_runtime_test.cpp`
-  - `workitems/active/core-types/00-feature-packet.md`
-  - `workitems/active/core-types/01-test-contract.md`
+  - `workitems/archive/core-types/00-feature-packet.md`
+  - `workitems/archive/core-types/01-test-contract.md`
 - Modules touched:
   - `core`
   - test registration infrastructure
@@ -50,3 +50,4 @@
   - richer device selection policy
   - stream-aware memory helpers
   - integration with profiling and benchmark modules from later phases
+

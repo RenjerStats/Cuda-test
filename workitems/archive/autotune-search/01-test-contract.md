@@ -2,7 +2,7 @@
 
 ## Linkage
 
-- Related feature packet: `workitems/active/autotune-search/00-feature-packet.md`
+- Related feature packet: `workitems/archive/autotune-search/00-feature-packet.md`
 - Reviewer: Claude
 
 ## Correctness Scenarios
@@ -44,3 +44,4 @@
 - Unit or integration tests: `tests/unit/autotune/` covers candidate generation, filtering, ranking, and invalid specs
 - Benchmark output: none for this phase
 - Report artifacts: none for this phase
+
