@@ -5,6 +5,7 @@
 ///
 /// Individual module headers are included here as they become available.
 
+#include "cuda_test/autotune/search.hpp"
 #include "cuda_test/benchmark/benchmark_runner.hpp"
 #include "cuda_test/benchmark/stats.hpp"
 #include "cuda_test/core/device_info.hpp"
