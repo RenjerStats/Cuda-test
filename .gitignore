@@ -49,3 +49,6 @@ __pycache__/
 *.bak
 reports/raw/*
 !reports/raw/.gitkeep
+
+# Symlinked compile database
+/compile_commands.json
