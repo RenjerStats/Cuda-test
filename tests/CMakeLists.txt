@@ -10,6 +10,10 @@ function(cuda_test_add_test)
   cmake_parse_arguments(ARG "" "NAME" "SOURCES" ${ARGN})
 
   add_executable(${ARG_NAME} ${ARG_SOURCES})
+  target_include_directories(${ARG_NAME}
+    PRIVATE
+      ${PROJECT_SOURCE_DIR}
+  )
   target_link_libraries(${ARG_NAME}
     PRIVATE
       cuda_test::cuda_test
@@ -21,10 +25,12 @@ endfunction()
 
 # ---- Unit tests ----
 cuda_test_add_test(NAME core_types_test SOURCES unit/core/core_types_test.cpp)
+cuda_test_add_test(NAME testing_validation_test SOURCES unit/testing/validation_test.cpp)
 
 if(CUDA_TEST_HAS_CUDA)
   cuda_test_add_test(NAME core_cuda_runtime_test SOURCES unit/core/core_cuda_runtime_test.cpp)
   cuda_test_add_test(NAME profiling_staged_timer_test SOURCES unit/profiling/staged_timer_test.cu)
+  cuda_test_add_test(NAME testing_kernel_fixture_test SOURCES unit/testing/kernel_test_fixture_test.cu)
 endif()
 
 # ---- Integration tests ----
