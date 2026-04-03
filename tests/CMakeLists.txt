@@ -24,10 +24,12 @@ function(cuda_test_add_test)
 endfunction()
 
 # ---- Unit tests ----
+cuda_test_add_test(NAME analysis_metrics_test SOURCES unit/analysis/metrics_test.cpp)
 cuda_test_add_test(NAME core_types_test SOURCES unit/core/core_types_test.cpp)
 cuda_test_add_test(NAME autotune_search_test SOURCES unit/autotune/autotune_search_test.cpp)
 cuda_test_add_test(NAME benchmark_stats_test SOURCES unit/benchmark/benchmark_stats_test.cpp)
 cuda_test_add_test(NAME benchmark_runner_test SOURCES unit/benchmark/benchmark_runner_test.cpp)
+cuda_test_add_test(NAME reporting_export_test SOURCES unit/reporting/export_test.cpp)
 cuda_test_add_test(NAME testing_validation_test SOURCES unit/testing/validation_test.cpp)
 
 if(CUDA_TEST_HAS_CUDA)

@@ -5,6 +5,7 @@
 ///
 /// Individual module headers are included here as they become available.
 
+#include "cuda_test/analysis/metrics.hpp"
 #include "cuda_test/autotune/search.hpp"
 #include "cuda_test/benchmark/benchmark_runner.hpp"
 #include "cuda_test/benchmark/stats.hpp"
@@ -13,6 +14,7 @@
 #include "cuda_test/core/error.hpp"
 #include "cuda_test/core/types.hpp"
 #include "cuda_test/profiling/staged_timer.hpp"
+#include "cuda_test/reporting/export.hpp"
 
 namespace cuda_test {
 namespace detail {
