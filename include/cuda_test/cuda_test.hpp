@@ -5,6 +5,8 @@
 ///
 /// Individual module headers are included here as they become available.
 
+#include "cuda_test/benchmark/benchmark_runner.hpp"
+#include "cuda_test/benchmark/stats.hpp"
 #include "cuda_test/core/device_info.hpp"
 #include "cuda_test/core/device_memory.hpp"
 #include "cuda_test/core/error.hpp"

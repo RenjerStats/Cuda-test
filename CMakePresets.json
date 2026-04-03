@@ -7,8 +7,32 @@
   },
   "configurePresets": [
     {
+      "name": "msvc",
+      "displayName": "MSVC Host-only (no CUDA)",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build/msvc",
+      "cacheVariables": {
+        "CUDA_TEST_ENABLE_CUDA": "OFF",
+        "CUDA_TEST_BUILD_TESTS": "ON",
+        "CUDA_TEST_BUILD_BENCHMARKS": "ON",
+        "CUDA_TEST_BUILD_EXAMPLES": "ON"
+      }
+    },
+    {
+      "name": "msvc-cuda",
+      "displayName": "MSVC + CUDA",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build/msvc-cuda",
+      "cacheVariables": {
+        "CUDA_TEST_ENABLE_CUDA": "ON",
+        "CUDA_TEST_BUILD_TESTS": "ON",
+        "CUDA_TEST_BUILD_BENCHMARKS": "ON",
+        "CUDA_TEST_BUILD_EXAMPLES": "ON"
+      }
+    },
+    {
       "name": "default",
-      "displayName": "Default host-only scaffold",
+      "displayName": "Ninja Host-only",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/default",
       "cacheVariables": {
@@ -18,12 +42,50 @@
         "CUDA_TEST_BUILD_BENCHMARKS": "ON",
         "CUDA_TEST_BUILD_EXAMPLES": "ON"
       }
+    },
+    {
+      "name": "cuda",
+      "displayName": "Ninja + CUDA",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/cuda",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CUDA_TEST_ENABLE_CUDA": "ON",
+        "CUDA_TEST_BUILD_TESTS": "ON",
+        "CUDA_TEST_BUILD_BENCHMARKS": "ON",
+        "CUDA_TEST_BUILD_EXAMPLES": "ON"
+      }
+    },
+    {
+      "name": "cuda-release",
+      "displayName": "Ninja + CUDA Release",
+      "inherits": "cuda",
+      "binaryDir": "${sourceDir}/build/cuda-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
     }
   ],
   "buildPresets": [
     {
+      "name": "msvc",
+      "configurePreset": "msvc"
+    },
+    {
+      "name": "msvc-cuda",
+      "configurePreset": "msvc-cuda"
+    },
+    {
       "name": "default",
       "configurePreset": "default"
+    },
+    {
+      "name": "cuda",
+      "configurePreset": "cuda"
+    },
+    {
+      "name": "cuda-release",
+      "configurePreset": "cuda-release"
     }
   ]
 }
