@@ -14,6 +14,9 @@
 #include "cuda_test/core/error.hpp"
 #include "cuda_test/core/types.hpp"
 #include "cuda_test/pipeline/kernel_descriptor.hpp"
+#include "cuda_test/pipeline/pipeline.hpp"
+#include "cuda_test/pipeline/pipeline_report.hpp"
+#include "cuda_test/pipeline/suite.hpp"
 #include "cuda_test/profiling/staged_timer.hpp"
 #include "cuda_test/reporting/export.hpp"
 
