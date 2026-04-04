@@ -133,6 +133,7 @@ TEST_F(PipelineCudaTest, CorrectnessOnlyReportPassesForValidDescriptor) {
 }
 
 TEST_F(PipelineCudaTest, FailingCorrectnessSkipsBenchmarkAndAutotune) {
+    ScopedTempDir temp_dir("cuda_test_pipeline_cuda_failed_correctness");
     const KernelDescriptor descriptor = make_vector_add_descriptor("correctness_fail", 1024, true);
     const autotune::AutoTuneSpec spec = make_fast_autotune_spec({64, 128}, {1, 2});
     const benchmark::BenchmarkConfig benchmark_config = make_fast_benchmark_config(1, 2);
@@ -149,6 +150,13 @@ TEST_F(PipelineCudaTest, FailingCorrectnessSkipsBenchmarkAndAutotune) {
     EXPECT_FALSE(report.passed());
     EXPECT_FALSE(report.benchmark_result().has_value());
     EXPECT_FALSE(report.autotune_result().has_value());
+
+    const std::filesystem::path json_path = temp_dir.path() / "failed.json";
+    report.to_json(json_path);
+    const std::string json = read_text_file(json_path);
+    EXPECT_NE(json.find("\"correctness\":{\"enabled\":true,\"passed\":false}"), std::string::npos);
+    EXPECT_EQ(json.find("\"benchmark\":"), std::string::npos);
+    EXPECT_EQ(json.find("\"autotune\":"), std::string::npos);
 }
 
 TEST_F(PipelineCudaTest, BenchmarkOnlyUsesBaselineConfigurationAndProducesStats) {
@@ -215,7 +223,8 @@ TEST_F(PipelineCudaTest, FullChainPopulatesAllStagesAndExportsReport) {
     const std::string json = read_text_file(json_path);
     const std::string csv = read_text_file(csv_path);
     EXPECT_NE(json.find("\"kernel_name\":\"full_chain\""), std::string::npos);
-    EXPECT_NE(json.find("\"autotune_result\":"), std::string::npos);
+    EXPECT_NE(json.find("\"benchmark\":"), std::string::npos);
+    EXPECT_NE(json.find("\"autotune\":"), std::string::npos);
     EXPECT_NE(csv.find("autotune_candidate_count"), std::string::npos);
     EXPECT_NE(csv.find("\"full_chain\""), std::string::npos);
 }

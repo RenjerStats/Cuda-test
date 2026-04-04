@@ -88,6 +88,9 @@ TEST(PipelineSuiteTest, PipelineReportExportsJsonAndCsvForNoStageRun) {
     EXPECT_NE(json.find("\"kernel_name\":\"unit_export\""), std::string::npos);
     EXPECT_NE(json.find("\"device_id\":5"), std::string::npos);
     EXPECT_NE(json.find("\"passed\":true"), std::string::npos);
+    EXPECT_NE(json.find("\"correctness\":{\"enabled\":false,\"passed\":false}"), std::string::npos);
+    EXPECT_EQ(json.find("\"benchmark\":"), std::string::npos);
+    EXPECT_EQ(json.find("\"autotune\":"), std::string::npos);
     EXPECT_NE(csv.find("kernel_name,device_id"), std::string::npos);
     EXPECT_NE(csv.find("\"unit_export\",5"), std::string::npos);
 }
