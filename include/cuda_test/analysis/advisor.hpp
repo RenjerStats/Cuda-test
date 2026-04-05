@@ -103,6 +103,8 @@ inline std::vector<Recommendation> diagnose(const KernelFingerprint& fingerprint
             "traffic growth as problem size increases.");
     }
 
+    // Keep these defensive non-negative guards so "well_utilized" does not fire
+    // on incomplete or corrupted metrics that happen to satisfy the upper bounds.
     if (recommendations.empty() && fingerprint.transfer_compute_ratio >= 0.0 &&
         fingerprint.transfer_compute_ratio < 0.3 && fingerprint.occupancy >= 0.6 &&
         fingerprint.cv >= 0.0 && fingerprint.cv < 0.1 && fingerprint.block_sensitivity >= 0.0 &&

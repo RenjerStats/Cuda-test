@@ -15,23 +15,13 @@ namespace cuda_test::pipeline {
 
 namespace detail {
 
-inline bool same_launch_config(const core::KernelLaunchConfig& lhs, const core::KernelLaunchConfig& rhs) {
-    return lhs.grid.x == rhs.grid.x && lhs.grid.y == rhs.grid.y && lhs.grid.z == rhs.grid.z &&
-           lhs.block.x == rhs.block.x && lhs.block.y == rhs.block.y && lhs.block.z == rhs.block.z &&
-           lhs.shared_mem == rhs.shared_mem && lhs.device_id == rhs.device_id;
-}
-
 inline const autotune::CandidateRecord* find_selected_candidate(const autotune::AutoTuneResult& result) {
-    for (const autotune::CandidateRecord& candidate : result.all_candidates) {
-        if (same_launch_config(candidate.config, result.best) &&
-            candidate.benchmark.kernel_stats.median_ms == result.stats.median_ms &&
-            candidate.benchmark.kernel_stats.p95_ms == result.stats.p95_ms &&
-            candidate.benchmark.kernel_stats.cv == result.stats.cv) {
-            return &candidate;
-        }
+    const std::optional<std::size_t> winner_index = autotune::detail::find_winning_candidate_index(result);
+    if (!winner_index.has_value()) {
+        return nullptr;
     }
 
-    return nullptr;
+    return &result.all_candidates[*winner_index];
 }
 
 inline core::ProfilingBreakdown make_median_breakdown(const benchmark::BenchmarkResult& result) {

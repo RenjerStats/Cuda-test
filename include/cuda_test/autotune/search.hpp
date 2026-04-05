@@ -115,6 +115,20 @@ inline bool is_better_candidate(const CandidateRecord& lhs, const CandidateRecor
                     rhs.benchmark.kernel_stats.cv);
 }
 
+inline std::optional<std::size_t> find_winning_candidate_index(const AutoTuneResult& result) {
+    for (std::size_t index = 0; index < result.all_candidates.size(); ++index) {
+        const CandidateRecord& candidate = result.all_candidates[index];
+        if (candidate.config == result.best &&
+            candidate.benchmark.kernel_stats.median_ms == result.stats.median_ms &&
+            candidate.benchmark.kernel_stats.p95_ms == result.stats.p95_ms &&
+            candidate.benchmark.kernel_stats.cv == result.stats.cv) {
+            return index;
+        }
+    }
+
+    return std::nullopt;
+}
+
 inline std::size_t find_best_candidate_index(const std::vector<CandidateRecord>& candidates) {
     std::size_t best_index = 0;
     for (std::size_t index = 1; index < candidates.size(); ++index) {

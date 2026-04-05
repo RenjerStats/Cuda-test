@@ -13,6 +13,13 @@ struct KernelLaunchConfig {
     int device_id = 0;
 };
 
+[[nodiscard]] inline bool operator==(const KernelLaunchConfig& lhs,
+                                     const KernelLaunchConfig& rhs) noexcept {
+    return lhs.grid.x == rhs.grid.x && lhs.grid.y == rhs.grid.y && lhs.grid.z == rhs.grid.z &&
+           lhs.block.x == rhs.block.x && lhs.block.y == rhs.block.y && lhs.block.z == rhs.block.z &&
+           lhs.shared_mem == rhs.shared_mem && lhs.device_id == rhs.device_id;
+}
+
 struct ProfilingBreakdown {
     double h2d_ms = 0.0;
     double kernel_ms = 0.0;

@@ -65,24 +65,8 @@ inline std::string quote_csv(std::string_view value) {
     return escaped;
 }
 
-inline bool same_config(const core::KernelLaunchConfig& lhs, const core::KernelLaunchConfig& rhs) {
-    return lhs.grid.x == rhs.grid.x && lhs.grid.y == rhs.grid.y && lhs.grid.z == rhs.grid.z &&
-           lhs.block.x == rhs.block.x && lhs.block.y == rhs.block.y && lhs.block.z == rhs.block.z &&
-           lhs.shared_mem == rhs.shared_mem && lhs.device_id == rhs.device_id;
-}
-
 inline std::optional<std::size_t> find_winner_index(const autotune::AutoTuneResult& result) {
-    for (std::size_t index = 0; index < result.all_candidates.size(); ++index) {
-        const autotune::CandidateRecord& candidate = result.all_candidates[index];
-        if (same_config(candidate.config, result.best) &&
-            candidate.benchmark.kernel_stats.median_ms == result.stats.median_ms &&
-            candidate.benchmark.kernel_stats.p95_ms == result.stats.p95_ms &&
-            candidate.benchmark.kernel_stats.cv == result.stats.cv) {
-            return index;
-        }
-    }
-
-    return std::nullopt;
+    return autotune::detail::find_winning_candidate_index(result);
 }
 
 inline void write_run_stats_csv(std::ostream& stream, const core::RunStats& stats) {
