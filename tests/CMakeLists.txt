@@ -25,6 +25,8 @@ endfunction()
 
 # ---- Unit tests ----
 cuda_test_add_test(NAME analysis_metrics_test SOURCES unit/analysis/metrics_test.cpp)
+cuda_test_add_test(NAME analysis_bandwidth_test SOURCES unit/analysis/bandwidth_test.cpp)
+cuda_test_add_test(NAME analysis_metrics_extended_test SOURCES unit/analysis/metrics_extended_test.cpp)
 cuda_test_add_test(NAME core_types_test SOURCES unit/core/core_types_test.cpp)
 cuda_test_add_test(NAME autotune_search_test SOURCES unit/autotune/autotune_search_test.cpp)
 cuda_test_add_test(NAME benchmark_stats_test SOURCES unit/benchmark/benchmark_stats_test.cpp)
@@ -35,6 +37,7 @@ cuda_test_add_test(NAME reporting_export_test SOURCES unit/reporting/export_test
 cuda_test_add_test(NAME testing_validation_test SOURCES unit/testing/validation_test.cpp)
 
 if(CUDA_TEST_HAS_CUDA)
+  cuda_test_add_test(NAME analysis_cuda_runtime_test SOURCES integration/analysis/analysis_cuda_runtime_test.cu)
   cuda_test_add_test(NAME core_cuda_runtime_test SOURCES unit/core/core_cuda_runtime_test.cpp)
   cuda_test_add_test(NAME kernel_integration_test SOURCES integration/kernel_integration_test.cu)
   cuda_test_add_test(NAME pipeline_kernel_descriptor_cuda_test SOURCES integration/pipeline/kernel_descriptor_cuda_test.cu)

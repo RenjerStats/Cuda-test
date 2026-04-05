@@ -6,6 +6,11 @@
 /// Individual module headers are included here as they become available.
 
 #include "cuda_test/analysis/metrics.hpp"
+#include "cuda_test/analysis/bandwidth.hpp"
+#include "cuda_test/analysis/fingerprint.hpp"
+#include "cuda_test/analysis/kernel_attributes.hpp"
+#include "cuda_test/analysis/memory_info.hpp"
+#include "cuda_test/analysis/occupancy.hpp"
 #include "cuda_test/autotune/search.hpp"
 #include "cuda_test/benchmark/benchmark_runner.hpp"
 #include "cuda_test/benchmark/stats.hpp"
