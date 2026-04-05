@@ -19,17 +19,11 @@
 #include "cuda_test/core/device_memory.hpp"
 #include "cuda_test/core/error.hpp"
 #include "cuda_test/core/types.hpp"
+#include "cuda_test/core/version.hpp"
 #include "cuda_test/pipeline/kernel_descriptor.hpp"
 #include "cuda_test/pipeline/pipeline.hpp"
 #include "cuda_test/pipeline/pipeline_report.hpp"
 #include "cuda_test/pipeline/suite.hpp"
 #include "cuda_test/profiling/staged_timer.hpp"
 #include "cuda_test/reporting/export.hpp"
-
-namespace cuda_test {
-namespace detail {
-inline constexpr int version_major = 0;
-inline constexpr int version_minor = 2;
-inline constexpr int version_patch = 0;
-} // namespace detail
-} // namespace cuda_test
+#include "cuda_test/reporting/html_export.hpp"

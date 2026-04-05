@@ -228,6 +228,58 @@ inline void write_autotune_result_json(std::ostream& stream, const autotune::Aut
     stream << "]}";
 }
 
+inline void write_pipeline_report_json(std::ostream& stream, const pipeline::PipelineReport& report) {
+    stream << '{';
+    stream << "\"kernel_name\":\"" << escape_json_string(report.kernel_name()) << "\",";
+    stream << "\"device_id\":" << report.device_id() << ',';
+    stream << "\"passed\":" << format_bool(report.passed()) << ',';
+    stream << "\"benchmark_enabled\":" << format_bool(report.benchmark_enabled()) << ',';
+    stream << "\"autotune_enabled\":" << format_bool(report.autotune_enabled()) << ',';
+    stream << "\"diagnose_enabled\":" << format_bool(report.diagnose_enabled()) << ',';
+    stream << "\"correctness\":{\"enabled\":" << format_bool(report.correctness_enabled())
+           << ",\"passed\":" << format_bool(report.correctness_passed()) << '}';
+
+    if (report.benchmark_result().has_value()) {
+        stream << ",\"benchmark\":";
+        write_benchmark_result_json(stream, *report.benchmark_result());
+    }
+
+    if (report.autotune_result().has_value()) {
+        stream << ",\"autotune\":";
+        write_autotune_result_json(stream, *report.autotune_result());
+    }
+
+    if (report.fingerprint().has_value()) {
+        stream << ",\"fingerprint\":";
+        write_fingerprint_json(stream, *report.fingerprint());
+    }
+
+    if (report.diagnose_enabled()) {
+        stream << ",\"recommendations\":";
+        write_recommendations_json(stream, report.recommendations());
+    }
+
+    stream << '}';
+}
+
+inline void write_suite_report_json(std::ostream& stream, const pipeline::SuiteReport& report) {
+    stream << '{';
+    stream << "\"name\":\"" << escape_json_string(report.name()) << "\",";
+    stream << "\"all_passed\":" << format_bool(report.all_passed()) << ',';
+    stream << "\"report_count\":" << report.reports().size() << ',';
+    stream << "\"reports\":[";
+
+    for (std::size_t index = 0; index < report.reports().size(); ++index) {
+        if (index > 0U) {
+            stream << ',';
+        }
+
+        write_pipeline_report_json(stream, report.reports()[index]);
+    }
+
+    stream << "]}";
+}
+
 } // namespace detail
 
 inline void export_csv(const std::filesystem::path& path, const benchmark::BenchmarkResult& result) {
@@ -409,38 +461,7 @@ inline void export_csv(const std::filesystem::path& path, const pipeline::Pipeli
 
 inline void export_json(const std::filesystem::path& path, const pipeline::PipelineReport& report) {
     std::ofstream stream = detail::open_output_file(path);
-
-    stream << '{';
-    stream << "\"kernel_name\":\"" << detail::escape_json_string(report.kernel_name()) << "\",";
-    stream << "\"device_id\":" << report.device_id() << ',';
-    stream << "\"passed\":" << detail::format_bool(report.passed()) << ',';
-    stream << "\"benchmark_enabled\":" << detail::format_bool(report.benchmark_enabled()) << ',';
-    stream << "\"autotune_enabled\":" << detail::format_bool(report.autotune_enabled()) << ',';
-    stream << "\"diagnose_enabled\":" << detail::format_bool(report.diagnose_enabled()) << ',';
-    stream << "\"correctness\":{\"enabled\":" << detail::format_bool(report.correctness_enabled())
-           << ",\"passed\":" << detail::format_bool(report.correctness_passed()) << '}';
-
-    if (report.benchmark_result().has_value()) {
-        stream << ",\"benchmark\":";
-        detail::write_benchmark_result_json(stream, *report.benchmark_result());
-    }
-
-    if (report.autotune_result().has_value()) {
-        stream << ",\"autotune\":";
-        detail::write_autotune_result_json(stream, *report.autotune_result());
-    }
-
-    if (report.fingerprint().has_value()) {
-        stream << ",\"fingerprint\":";
-        detail::write_fingerprint_json(stream, *report.fingerprint());
-    }
-
-    if (report.diagnose_enabled()) {
-        stream << ",\"recommendations\":";
-        detail::write_recommendations_json(stream, report.recommendations());
-    }
-
-    stream << '}';
+    detail::write_pipeline_report_json(stream, report);
 }
 
 } // namespace cuda_test::reporting

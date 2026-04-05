@@ -15,6 +15,7 @@
 namespace cuda_test::pipeline {
 
 class PipelineReport;
+class SuiteReport;
 
 } // namespace cuda_test::pipeline
 
@@ -22,6 +23,8 @@ namespace cuda_test::reporting {
 
 void export_csv(const std::filesystem::path& path, const pipeline::PipelineReport& report);
 void export_json(const std::filesystem::path& path, const pipeline::PipelineReport& report);
+void export_html(const std::filesystem::path& path, const pipeline::PipelineReport& report);
+void export_html(const std::filesystem::path& path, const pipeline::SuiteReport& report);
 
 } // namespace cuda_test::reporting
 
@@ -122,6 +125,10 @@ public:
         reporting::export_json(path, *this);
     }
 
+    void to_html(const std::filesystem::path& path) const {
+        reporting::export_html(path, *this);
+    }
+
 private:
     std::string kernel_name_;
     int device_id_ = 0;
@@ -173,6 +180,10 @@ public:
         }
     }
 
+    void to_html(const std::filesystem::path& path) const {
+        reporting::export_html(path, *this);
+    }
+
 private:
     std::string name_;
     std::vector<PipelineReport> reports_;
@@ -185,3 +196,4 @@ private:
 // Include reporting definitions after PipelineReport is complete to resolve
 // the bidirectional dependency between the pipeline and reporting modules.
 #include "cuda_test/reporting/export.hpp"
+#include "cuda_test/reporting/html_export.hpp"

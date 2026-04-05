@@ -73,6 +73,7 @@ cuda_test_add_test(NAME benchmark_runner_test SOURCES unit/benchmark/benchmark_r
 cuda_test_add_test(NAME pipeline_kernel_descriptor_test SOURCES unit/pipeline/kernel_descriptor_test.cpp)
 cuda_test_add_test(NAME pipeline_suite_test SOURCES unit/pipeline/pipeline_test.cpp)
 cuda_test_add_test(NAME reporting_export_test SOURCES unit/reporting/export_test.cpp)
+cuda_test_add_test(NAME reporting_html_export_test SOURCES unit/reporting/html_export_test.cpp)
 cuda_test_add_test(NAME testing_validation_test SOURCES unit/testing/validation_test.cpp)
 
 if(CUDA_TEST_HAS_CUDA)

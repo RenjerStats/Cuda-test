@@ -5,6 +5,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -15,7 +16,9 @@ namespace {
 class ScopedTempDir {
 public:
     explicit ScopedTempDir(std::string name)
-        : path_(std::filesystem::temp_directory_path() / std::move(name)) {
+        : path_(std::filesystem::temp_directory_path() / "cuda_test_pipeline_unit" /
+                std::to_string(std::hash<std::string>{}(std::filesystem::current_path().string())) /
+                std::move(name)) {
         std::filesystem::remove_all(path_);
     }
 
