@@ -9,9 +9,7 @@
 #include <utility>
 #include <vector>
 
-#define private public
 #include "cuda_test/reporting/html_export.hpp"
-#undef private
 
 namespace cuda_test::reporting {
 namespace {
@@ -95,46 +93,40 @@ analysis::KernelFingerprint make_fingerprint() {
 }
 
 pipeline::PipelineReport make_full_report(std::string kernel_name = "test_kernel") {
-    pipeline::PipelineReport report;
-    report.kernel_name_ = std::move(kernel_name);
-    report.device_id_ = 2;
-    report.correctness_enabled_ = true;
-    report.correctness_passed_ = true;
-    report.benchmark_enabled_ = true;
-    report.autotune_enabled_ = true;
-    report.diagnose_enabled_ = true;
-    report.benchmark_result_ = make_benchmark_result();
-    report.autotune_result_ = make_autotune_result();
-    report.fingerprint_ = make_fingerprint();
-    report.recommendations_ = {
-        {"unstable_timing", "warning", "Timing variation is high.", "Reduce background GPU work."},
-        {"bandwidth_bound", "info", "The kernel is bandwidth limited.", "Improve coalescing and shared memory use."},
-    };
-    return report;
+    return pipeline::detail::PipelineReportBuilder()
+        .kernel_name(std::move(kernel_name))
+        .device_id(2)
+        .correctness(true, true)
+        .benchmark(make_benchmark_result())
+        .autotune(make_autotune_result())
+        .diagnose(true,
+                  make_fingerprint(),
+                  {{"unstable_timing", "warning", "Timing variation is high.", "Reduce background GPU work."},
+                   {"bandwidth_bound",
+                    "info",
+                    "The kernel is bandwidth limited.",
+                    "Improve coalescing and shared memory use."}})
+        .build();
 }
 
 pipeline::PipelineReport make_failed_report(std::string kernel_name = "failing_kernel") {
-    pipeline::PipelineReport report;
-    report.kernel_name_ = std::move(kernel_name);
-    report.device_id_ = 1;
-    report.correctness_enabled_ = true;
-    report.correctness_passed_ = false;
-    return report;
+    return pipeline::detail::PipelineReportBuilder()
+        .kernel_name(std::move(kernel_name))
+        .device_id(1)
+        .correctness(true, false)
+        .build();
 }
 
 pipeline::PipelineReport make_minimal_report(std::string kernel_name = "minimal_kernel") {
-    pipeline::PipelineReport report;
-    report.kernel_name_ = std::move(kernel_name);
-    report.device_id_ = 0;
-    return report;
+    return pipeline::detail::PipelineReportBuilder().kernel_name(std::move(kernel_name)).device_id(0).build();
 }
 
 pipeline::SuiteReport make_suite_report() {
-    pipeline::SuiteReport suite;
-    suite.name_ = "suite_alpha";
-    suite.reports_.push_back(make_full_report("alpha_kernel"));
-    suite.reports_.push_back(make_failed_report("beta_kernel"));
-    return suite;
+    return pipeline::detail::SuiteReportBuilder()
+        .name("suite_alpha")
+        .add_report(make_full_report("alpha_kernel"))
+        .add_report(make_failed_report("beta_kernel"))
+        .build();
 }
 
 std::filesystem::path make_output_path(const std::string& filename) {
@@ -163,6 +155,30 @@ std::size_t count_occurrences(const std::string& text, const std::string& needle
     }
 
     return count;
+}
+
+std::string normalize_generated_timestamps(std::string text) {
+    const std::string marker = "Generated ";
+    const std::string suffix = " | cuda_test v";
+    std::size_t search_from = 0U;
+
+    while (true) {
+        const std::size_t marker_pos = text.find(marker, search_from);
+        if (marker_pos == std::string::npos) {
+            break;
+        }
+
+        const std::size_t value_begin = marker_pos + marker.size();
+        const std::size_t value_end = text.find(suffix, value_begin);
+        if (value_end == std::string::npos) {
+            break;
+        }
+
+        text.replace(value_begin, value_end - value_begin, "<normalized>");
+        search_from = value_begin + 12U;
+    }
+
+    return text;
 }
 
 TEST(HtmlExportTest, PipelineHtmlExportWritesFullStandaloneDocument) {
@@ -207,7 +223,23 @@ TEST(HtmlExportTest, PipelineHtmlExportShowsFailedCorrectnessBadge) {
 
 TEST(HtmlExportTest, PipelineHtmlExportEscapesVisibleTextAndScriptSensitiveContent) {
     pipeline::PipelineReport report = make_full_report("test</script>&kernel<demo>");
-    report.recommendations_[0].suggestion = "Avoid </script> in copied snippets.";
+    report = pipeline::detail::PipelineReportBuilder()
+                 .kernel_name(report.kernel_name())
+                 .device_id(report.device_id())
+                 .correctness(report.correctness_enabled(), report.correctness_passed())
+                 .benchmark(report.benchmark_result(), report.benchmark_enabled())
+                 .autotune(report.autotune_result(), report.autotune_enabled())
+                 .diagnose(true,
+                           report.fingerprint(),
+                           {{"unstable_timing",
+                             "warning",
+                             "Timing variation is high.",
+                             "Avoid </script> in copied snippets."},
+                            {"bandwidth_bound",
+                             "info",
+                             "The kernel is bandwidth limited.",
+                             "Improve coalescing and shared memory use."}})
+                 .build();
     const std::filesystem::path path = make_output_path("pipeline_escaped.html");
 
     export_html(path, report);
@@ -238,7 +270,8 @@ TEST(HtmlExportTest, PipelineMemberDelegationMatchesDirectExport) {
     export_html(direct_path, report);
     report.to_html(member_path);
 
-    EXPECT_EQ(read_text(direct_path), read_text(member_path));
+    EXPECT_EQ(normalize_generated_timestamps(read_text(direct_path)),
+              normalize_generated_timestamps(read_text(member_path)));
 }
 
 TEST(HtmlExportTest, SuiteHtmlExportWritesSummaryAndKernelSections) {
@@ -259,8 +292,7 @@ TEST(HtmlExportTest, SuiteHtmlExportWritesSummaryAndKernelSections) {
 }
 
 TEST(HtmlExportTest, SuiteHtmlExportHandlesEmptySuite) {
-    pipeline::SuiteReport suite;
-    suite.name_ = "empty_suite";
+    const pipeline::SuiteReport suite = pipeline::detail::SuiteReportBuilder().name("empty_suite").build();
     const std::filesystem::path path = make_output_path("suite_empty.html");
 
     export_html(path, suite);
@@ -278,7 +310,8 @@ TEST(HtmlExportTest, SuiteMemberDelegationMatchesDirectExport) {
     export_html(direct_path, suite);
     suite.to_html(member_path);
 
-    EXPECT_EQ(read_text(direct_path), read_text(member_path));
+    EXPECT_EQ(normalize_generated_timestamps(read_text(direct_path)),
+              normalize_generated_timestamps(read_text(member_path)));
 }
 
 TEST(HtmlExportTest, HtmlExportCreatesParentDirectories) {

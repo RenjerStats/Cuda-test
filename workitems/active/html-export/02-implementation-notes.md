@@ -34,21 +34,27 @@ only in `cuda_test.hpp`, so they were moved into `include/cuda_test/core/version
 re-exported through the umbrella header without changing the public namespace
 (`cuda_test::detail::version_*` remains intact).
 
-### 3. HTML renderer is self-contained
+### 3. JSON serialization is shared across JSON and HTML export
 
-The first implementation attempt reused `reporting/export.hpp` internals for formatting and
-JSON embedding. That created an include-cycle problem because `pipeline_report.hpp` includes
-both `export.hpp` and `html_export.hpp`.
+The first implementation used a second, HTML-local copy of the JSON serialization helpers.
+That avoided header churn, but it made `export.hpp` and `html_export.hpp` diverge-prone.
 
 Final approach:
 
-- keep `export.hpp` as the JSON/CSV export surface
-- keep `html_export.hpp` self-contained for file opening, numeric formatting, and JSON embedding
-- still reuse the same public report types and autotune winner-selection logic
+- extract shared report serialization into `include/cuda_test/reporting/detail/json_writer.hpp`
+- keep `export.hpp` focused on public JSON/CSV file export
+- keep `html_export.hpp` focused on HTML rendering and embedded raw JSON transport
 
-This trades a small amount of duplication for simpler header wiring and deterministic builds.
+This removes duplicated serialization logic while preserving the public API and the existing
+`pipeline_report.hpp -> reporting/*.hpp` include structure.
 
-### 4. Test temp paths are build-specific
+### 4. Test construction uses report builders
+
+The HTML tests originally reached into private report state directly. The final version adds
+`pipeline::detail::PipelineReportBuilder` and `pipeline::detail::SuiteReportBuilder` so tests
+can build synthetic reports without preprocessor-based access hacks.
+
+### 5. Test temp paths are build-specific
 
 Both the new HTML tests and the pre-existing `pipeline_test.cpp` used shared temp-directory
 names. Because validation was run against `msvc` and `msvc-cuda` in parallel, those tests
@@ -62,8 +68,6 @@ builds do not collide.
 - The packet mentioned best-effort device metadata in the report header. The implementation
   shows full device info only when CUDA runtime metadata is available; otherwise it falls back
   to `Device <id>` without throwing.
-- The packet suggested reuse of export internals for embedded JSON. This was not retained due
-  the header include-cycle described above.
 - No browser automation was added. Structural validation stays in unit tests.
 
 ## Validation
@@ -82,6 +86,11 @@ Tested:
 
 - `ctest -C Debug --output-on-failure -R '^(HtmlExportTest\\.|ExportTest\\.|PipelineSuiteTest\\.)'` in `build/msvc`
 - `ctest -C Debug --output-on-failure -R '^(HtmlExportTest\\.|ExportTest\\.|PipelineSuiteTest\\.)'` in `build/msvc-cuda`
+
+Review follow-up:
+
+- repeated the same targeted build/test matrix after extracting `reporting/detail/json_writer.hpp`
+- repeated the same targeted build/test matrix after replacing direct private-state access in HTML tests
 
 Result:
 

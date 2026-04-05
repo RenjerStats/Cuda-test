@@ -3,6 +3,7 @@
 #include "cuda_test/core/device_info.hpp"
 #include "cuda_test/core/version.hpp"
 #include "cuda_test/pipeline/pipeline_report.hpp"
+#include "cuda_test/reporting/detail/json_writer.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -52,182 +53,11 @@ inline std::string html_format_double(double value) {
     return stream.str();
 }
 
-inline std::string html_format_bool(bool value) {
-    return value ? "true" : "false";
-}
-
-inline std::string html_escape_json_string(const std::string& value) {
-    std::string escaped;
-    escaped.reserve(value.size() + 8U);
-
-    for (const char character : value) {
-        switch (character) {
-        case '\\':
-            escaped += "\\\\";
-            break;
-        case '"':
-            escaped += "\\\"";
-            break;
-        case '\n':
-            escaped += "\\n";
-            break;
-        case '\r':
-            escaped += "\\r";
-            break;
-        case '\t':
-            escaped += "\\t";
-            break;
-        default:
-            escaped.push_back(character);
-            break;
-        }
-    }
-
-    return escaped;
-}
-
-inline void html_write_run_stats_json(std::ostream& stream, const core::RunStats& stats) {
-    stream << "{\"mean_ms\":" << html_format_double(stats.mean_ms) << ",\"median_ms\":"
-           << html_format_double(stats.median_ms) << ",\"p95_ms\":" << html_format_double(stats.p95_ms)
-           << ",\"ci95_low\":" << html_format_double(stats.ci95_low) << ",\"ci95_high\":"
-           << html_format_double(stats.ci95_high) << ",\"cv\":" << html_format_double(stats.cv) << '}';
-}
-
-inline void html_write_launch_config_json(std::ostream& stream, const core::KernelLaunchConfig& config) {
-    stream << "{\"grid\":{\"x\":" << config.grid.x << ",\"y\":" << config.grid.y << ",\"z\":"
-           << config.grid.z << "},\"block\":{\"x\":" << config.block.x << ",\"y\":" << config.block.y
-           << ",\"z\":" << config.block.z << "},\"shared_mem\":" << config.shared_mem
-           << ",\"device_id\":" << config.device_id << '}';
-}
-
-inline void html_write_fingerprint_json(std::ostream& stream, const analysis::KernelFingerprint& fingerprint) {
-    stream << "{\"transfer_compute_ratio\":" << html_format_double(fingerprint.transfer_compute_ratio)
-           << ",\"occupancy\":" << html_format_double(fingerprint.occupancy)
-           << ",\"bandwidth_utilization\":" << html_format_double(fingerprint.bandwidth_utilization)
-           << ",\"cv\":" << html_format_double(fingerprint.cv)
-           << ",\"block_sensitivity\":" << html_format_double(fingerprint.block_sensitivity)
-           << ",\"scaling_exponent\":" << html_format_double(fingerprint.scaling_exponent)
-           << ",\"num_regs\":" << fingerprint.num_regs
-           << ",\"local_size_bytes\":" << fingerprint.local_size_bytes
-           << ",\"shared_size_bytes\":" << fingerprint.shared_size_bytes << '}';
-}
-
-inline void html_write_recommendation_json(std::ostream& stream,
-                                           const analysis::Recommendation& recommendation) {
-    stream << "{\"tag\":\"" << html_escape_json_string(recommendation.tag) << "\",\"severity\":\""
-           << html_escape_json_string(recommendation.severity) << "\",\"summary\":\""
-           << html_escape_json_string(recommendation.summary) << "\",\"suggestion\":\""
-           << html_escape_json_string(recommendation.suggestion) << "\"}";
-}
-
-inline void html_write_recommendations_json(std::ostream& stream,
-                                            const std::vector<analysis::Recommendation>& recommendations) {
-    stream << '[';
-    for (std::size_t index = 0; index < recommendations.size(); ++index) {
-        if (index > 0U) {
-            stream << ',';
-        }
-
-        html_write_recommendation_json(stream, recommendations[index]);
-    }
-    stream << ']';
-}
-
-inline void html_write_benchmark_result_json(std::ostream& stream, const benchmark::BenchmarkResult& result) {
-    stream << '{';
-    stream << "\"sample_count\":" << result.samples.size() << ',';
-    stream << "\"h2d_stats\":";
-    html_write_run_stats_json(stream, result.h2d_stats);
-    stream << ",\"kernel_stats\":";
-    html_write_run_stats_json(stream, result.kernel_stats);
-    stream << ",\"d2h_stats\":";
-    html_write_run_stats_json(stream, result.d2h_stats);
-    stream << ",\"total_stats\":";
-    html_write_run_stats_json(stream, result.total_stats);
-    stream << '}';
-}
-
-inline void html_write_autotune_result_json(std::ostream& stream, const autotune::AutoTuneResult& result) {
-    stream << '{';
-    stream << "\"candidate_count\":" << result.all_candidates.size() << ",\"best\":";
-    html_write_launch_config_json(stream, result.best);
-    stream << ",\"stats\":";
-    html_write_run_stats_json(stream, result.stats);
-    stream << ",\"reason\":\"" << html_escape_json_string(result.reason) << "\",\"all_candidates\":[";
-
-    for (std::size_t index = 0; index < result.all_candidates.size(); ++index) {
-        const autotune::CandidateRecord& candidate = result.all_candidates[index];
-        if (index > 0U) {
-            stream << ',';
-        }
-
-        stream << '{';
-        stream << "\"grid_wave_multiplier\":" << candidate.grid_wave_multiplier << ",\"config\":";
-        html_write_launch_config_json(stream, candidate.config);
-        stream << ",\"h2d_stats\":";
-        html_write_run_stats_json(stream, candidate.benchmark.h2d_stats);
-        stream << ",\"kernel_stats\":";
-        html_write_run_stats_json(stream, candidate.benchmark.kernel_stats);
-        stream << ",\"d2h_stats\":";
-        html_write_run_stats_json(stream, candidate.benchmark.d2h_stats);
-        stream << ",\"total_stats\":";
-        html_write_run_stats_json(stream, candidate.benchmark.total_stats);
-        stream << '}';
-    }
-
-    stream << "]}";
-}
-
-inline void html_write_pipeline_report_json(std::ostream& stream, const pipeline::PipelineReport& report) {
-    stream << '{';
-    stream << "\"kernel_name\":\"" << html_escape_json_string(report.kernel_name()) << "\",";
-    stream << "\"device_id\":" << report.device_id() << ',';
-    stream << "\"passed\":" << html_format_bool(report.passed()) << ',';
-    stream << "\"benchmark_enabled\":" << html_format_bool(report.benchmark_enabled()) << ',';
-    stream << "\"autotune_enabled\":" << html_format_bool(report.autotune_enabled()) << ',';
-    stream << "\"diagnose_enabled\":" << html_format_bool(report.diagnose_enabled()) << ',';
-    stream << "\"correctness\":{\"enabled\":" << html_format_bool(report.correctness_enabled())
-           << ",\"passed\":" << html_format_bool(report.correctness_passed()) << '}';
-
-    if (report.benchmark_result().has_value()) {
-        stream << ",\"benchmark\":";
-        html_write_benchmark_result_json(stream, *report.benchmark_result());
-    }
-
-    if (report.autotune_result().has_value()) {
-        stream << ",\"autotune\":";
-        html_write_autotune_result_json(stream, *report.autotune_result());
-    }
-
-    if (report.fingerprint().has_value()) {
-        stream << ",\"fingerprint\":";
-        html_write_fingerprint_json(stream, *report.fingerprint());
-    }
-
-    if (report.diagnose_enabled()) {
-        stream << ",\"recommendations\":";
-        html_write_recommendations_json(stream, report.recommendations());
-    }
-
-    stream << '}';
-}
-
-inline void html_write_suite_report_json(std::ostream& stream, const pipeline::SuiteReport& report) {
-    stream << '{';
-    stream << "\"name\":\"" << html_escape_json_string(report.name()) << "\",";
-    stream << "\"all_passed\":" << html_format_bool(report.all_passed()) << ',';
-    stream << "\"report_count\":" << report.reports().size() << ',';
-    stream << "\"reports\":[";
-
-    for (std::size_t index = 0; index < report.reports().size(); ++index) {
-        if (index > 0U) {
-            stream << ',';
-        }
-
-        html_write_pipeline_report_json(stream, report.reports()[index]);
-    }
-
-    stream << "]}";
+inline std::string html_format_display_double(double value, int precision) {
+    std::ostringstream stream;
+    stream.imbue(std::locale::classic());
+    stream << std::fixed << std::setprecision(precision) << value;
+    return stream.str();
 }
 
 inline std::string html_escape(std::string_view value) {
@@ -293,7 +123,7 @@ inline std::string format_ratio(double value) {
 }
 
 inline std::string format_percent(double value) {
-    return html_format_double(value * 100.0) + "%";
+    return html_format_display_double(value * 100.0, 1) + "%";
 }
 
 inline std::string format_bytes_compact(std::size_t value) {
@@ -337,6 +167,14 @@ inline std::string version_string() {
     stream << ::cuda_test::detail::version_major << '.' << ::cuda_test::detail::version_minor << '.'
            << ::cuda_test::detail::version_patch;
     return stream.str();
+}
+
+inline int breakdown_segment_radius(int width, int height) noexcept {
+    if (width <= 0 || height <= 0) {
+        return 0;
+    }
+
+    return std::min(14, std::min(width / 2, height / 2));
 }
 
 inline std::string device_label(int device_id) {
@@ -992,16 +830,19 @@ inline void append_breakdown_section(std::ostream& stream,
     const int h2d_width = static_cast<int>((h2d / total) * static_cast<double>(bar_width));
     const int kernel_width = static_cast<int>((kernel / total) * static_cast<double>(bar_width));
     const int d2h_width = bar_width - h2d_width - kernel_width;
+    const int h2d_radius = breakdown_segment_radius(h2d_width, bar_height);
+    const int d2h_radius = breakdown_segment_radius(d2h_width, bar_height);
 
     stream << "<section class=\"panel\" id=\"" << html_escape(section_id) << "\">";
     append_section_heading(stream, "Timing", "Stage breakdown", timing.label);
     stream << "<svg class=\"chart\" viewBox=\"0 0 760 120\" role=\"img\" aria-label=\"Stage breakdown chart\">"
            << "<rect x=\"" << bar_x << "\" y=\"" << bar_y << "\" width=\"" << h2d_width
-           << "\" height=\"" << bar_height << "\" rx=\"14\" fill=\"#1f6fb3\"></rect>"
+           << "\" height=\"" << bar_height << "\" rx=\"" << h2d_radius << "\" fill=\"#1f6fb3\"></rect>"
            << "<rect x=\"" << (bar_x + h2d_width) << "\" y=\"" << bar_y << "\" width=\"" << kernel_width
            << "\" height=\"" << bar_height << "\" fill=\"#1d7a63\"></rect>"
            << "<rect x=\"" << (bar_x + h2d_width + kernel_width) << "\" y=\"" << bar_y << "\" width=\""
-           << d2h_width << "\" height=\"" << bar_height << "\" rx=\"14\" fill=\"#c8791b\"></rect>"
+           << d2h_width << "\" height=\"" << bar_height << "\" rx=\"" << d2h_radius
+           << "\" fill=\"#c8791b\"></rect>"
            << "<text x=\"20\" y=\"26\" font-size=\"13\" fill=\"#4f5b54\">Median stage share</text></svg>";
     stream << "<div class=\"legend\"><span><i class=\"swatch\" style=\"background:#1f6fb3\"></i>H2D "
            << html_escape(format_ms(h2d)) << " (" << html_escape(format_percent(h2d / total))
@@ -1191,13 +1032,13 @@ inline void append_suite_summary(std::ostream& stream, const pipeline::SuiteRepo
 
 inline std::string pipeline_raw_json(const pipeline::PipelineReport& report) {
     std::ostringstream stream;
-    html_write_pipeline_report_json(stream, report);
+    write_pipeline_report_json(stream, report);
     return stream.str();
 }
 
 inline std::string suite_raw_json(const pipeline::SuiteReport& report) {
     std::ostringstream stream;
-    html_write_suite_report_json(stream, report);
+    write_suite_report_json(stream, report);
     return stream.str();
 }
 

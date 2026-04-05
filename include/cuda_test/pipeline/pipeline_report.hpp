@@ -32,6 +32,9 @@ namespace cuda_test::pipeline {
 
 namespace detail {
 
+class PipelineReportBuilder;
+class SuiteReportBuilder;
+
 inline std::string sanitize_file_component(const std::string& value) {
     std::string sanitized;
     sanitized.reserve(value.size());
@@ -144,6 +147,7 @@ private:
 
     friend class Pipeline;
     friend class SuiteReport;
+    friend class detail::PipelineReportBuilder;
 };
 
 class SuiteReport {
@@ -189,7 +193,84 @@ private:
     std::vector<PipelineReport> reports_;
 
     friend class Suite;
+    friend class detail::SuiteReportBuilder;
 };
+
+namespace detail {
+
+class PipelineReportBuilder {
+public:
+    PipelineReportBuilder& kernel_name(std::string value) {
+        report_.kernel_name_ = std::move(value);
+        return *this;
+    }
+
+    PipelineReportBuilder& device_id(int value) {
+        report_.device_id_ = value;
+        return *this;
+    }
+
+    PipelineReportBuilder& correctness(bool enabled, bool passed = false) {
+        report_.correctness_enabled_ = enabled;
+        report_.correctness_passed_ = enabled && passed;
+        return *this;
+    }
+
+    PipelineReportBuilder& benchmark(std::optional<benchmark::BenchmarkResult> value, bool enabled = true) {
+        report_.benchmark_enabled_ = enabled;
+        report_.benchmark_result_ = std::move(value);
+        return *this;
+    }
+
+    PipelineReportBuilder& autotune(std::optional<autotune::AutoTuneResult> value, bool enabled = true) {
+        report_.autotune_enabled_ = enabled;
+        report_.autotune_result_ = std::move(value);
+        return *this;
+    }
+
+    PipelineReportBuilder& diagnose(bool enabled,
+                                    std::optional<analysis::KernelFingerprint> fingerprint = std::nullopt,
+                                    std::vector<analysis::Recommendation> recommendations = {}) {
+        report_.diagnose_enabled_ = enabled;
+        report_.fingerprint_ = std::move(fingerprint);
+        report_.recommendations_ = std::move(recommendations);
+        return *this;
+    }
+
+    [[nodiscard]] PipelineReport build() const {
+        return report_;
+    }
+
+private:
+    PipelineReport report_{};
+};
+
+class SuiteReportBuilder {
+public:
+    SuiteReportBuilder& name(std::string value) {
+        report_.name_ = std::move(value);
+        return *this;
+    }
+
+    SuiteReportBuilder& add_report(PipelineReport value) {
+        report_.reports_.push_back(std::move(value));
+        return *this;
+    }
+
+    SuiteReportBuilder& reports(std::vector<PipelineReport> value) {
+        report_.reports_ = std::move(value);
+        return *this;
+    }
+
+    [[nodiscard]] SuiteReport build() const {
+        return report_;
+    }
+
+private:
+    SuiteReport report_{};
+};
+
+} // namespace detail
 
 } // namespace cuda_test::pipeline
 
