@@ -115,6 +115,13 @@ pipeline::PipelineReport make_no_stage_report() {
     return cuda_test::make_pipeline(make_no_stage_descriptor("report_pipeline")).device(4).run();
 }
 
+pipeline::PipelineReport make_no_stage_diagnose_report() {
+    return cuda_test::make_pipeline(make_no_stage_descriptor("report_pipeline_diagnose"))
+        .device(6)
+        .diagnose()
+        .run();
+}
+
 TEST(ExportTest, BenchmarkCsvExportWritesHeaderAndSummaryRow) {
     const std::filesystem::path path = make_output_path("benchmark_result.csv");
     const benchmark::BenchmarkResult result = make_benchmark_result_fixture();
@@ -168,9 +175,12 @@ TEST(ExportTest, PipelineJsonExportUsesEnvelopeAndConditionalSections) {
     const std::string text = read_text(path);
     EXPECT_NE(text.find("\"kernel_name\":\"report_pipeline\""), std::string::npos);
     EXPECT_NE(text.find("\"device_id\":4"), std::string::npos);
+    EXPECT_NE(text.find("\"diagnose_enabled\":false"), std::string::npos);
     EXPECT_NE(text.find("\"correctness\":{\"enabled\":false,\"passed\":false}"), std::string::npos);
     EXPECT_EQ(text.find("\"benchmark\":"), std::string::npos);
     EXPECT_EQ(text.find("\"autotune\":"), std::string::npos);
+    EXPECT_EQ(text.find("\"fingerprint\":"), std::string::npos);
+    EXPECT_EQ(text.find("\"recommendations\":"), std::string::npos);
 }
 
 TEST(ExportTest, PipelineCsvExportWritesSummaryWithEmptyOptionalColumns) {
@@ -183,20 +193,41 @@ TEST(ExportTest, PipelineCsvExportWritesSummaryWithEmptyOptionalColumns) {
     ASSERT_EQ(lines.size(), 2U);
     EXPECT_EQ(lines[0],
               "kernel_name,device_id,correctness_enabled,correctness_passed,passed,benchmark_enabled,"
-              "autotune_enabled,benchmark_sample_count,benchmark_kernel_mean_ms,benchmark_kernel_median_ms,"
-              "benchmark_kernel_p95_ms,benchmark_kernel_cv,benchmark_total_mean_ms,"
+              "autotune_enabled,diagnose_enabled,benchmark_sample_count,benchmark_kernel_mean_ms,"
+              "benchmark_kernel_median_ms,benchmark_kernel_p95_ms,benchmark_kernel_cv,benchmark_total_mean_ms,"
               "autotune_candidate_count,autotune_best_grid_x,autotune_best_block_x,"
               "autotune_best_shared_mem,autotune_best_device_id,autotune_kernel_mean_ms,"
-              "autotune_kernel_median_ms,autotune_kernel_p95_ms,autotune_kernel_cv,autotune_reason");
+              "autotune_kernel_median_ms,autotune_kernel_p95_ms,autotune_kernel_cv,autotune_reason,"
+              "fingerprint_transfer_compute_ratio,fingerprint_occupancy,fingerprint_bandwidth_utilization,"
+              "fingerprint_cv,fingerprint_block_sensitivity,fingerprint_scaling_exponent,"
+              "fingerprint_num_regs,fingerprint_local_size_bytes,fingerprint_shared_size_bytes,"
+              "recommendation_count,recommendation_tags");
 
     const std::vector<std::string> row = split_csv_row(lines[1]);
-    ASSERT_EQ(row.size(), 23U);
+    ASSERT_EQ(row.size(), 35U);
     EXPECT_EQ(row[0], "\"report_pipeline\"");
     EXPECT_EQ(row[1], "4");
     EXPECT_EQ(row[2], "false");
     EXPECT_EQ(row[4], "true");
-    EXPECT_TRUE(row[7].empty());
-    EXPECT_TRUE(row[13].empty());
+    EXPECT_EQ(row[7], "false");
+    EXPECT_TRUE(row[8].empty());
+    EXPECT_TRUE(row[14].empty());
+    EXPECT_EQ(row[33], "0");
+    EXPECT_EQ(row[34], "\"\"");
+}
+
+TEST(ExportTest, PipelineJsonExportIncludesDiagnoseEnvelopeWhenEnabledWithoutTimingData) {
+    const std::filesystem::path path = make_output_path("pipeline_report_diagnose.json");
+    const pipeline::PipelineReport report = make_no_stage_diagnose_report();
+
+    export_json(path, report);
+
+    const std::string text = read_text(path);
+    EXPECT_NE(text.find("\"kernel_name\":\"report_pipeline_diagnose\""), std::string::npos);
+    EXPECT_NE(text.find("\"device_id\":6"), std::string::npos);
+    EXPECT_NE(text.find("\"diagnose_enabled\":true"), std::string::npos);
+    EXPECT_NE(text.find("\"recommendations\":[]"), std::string::npos);
+    EXPECT_EQ(text.find("\"fingerprint\":"), std::string::npos);
 }
 
 TEST(ExportTest, PipelineMemberDelegationMatchesReportingOutput) {

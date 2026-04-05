@@ -105,6 +105,18 @@ inline void write_launch_config_json(std::ostream& stream, const core::KernelLau
            << ",\"device_id\":" << config.device_id << '}';
 }
 
+inline void write_fingerprint_json(std::ostream& stream, const analysis::KernelFingerprint& fingerprint) {
+    stream << "{\"transfer_compute_ratio\":" << format_double(fingerprint.transfer_compute_ratio)
+           << ",\"occupancy\":" << format_double(fingerprint.occupancy)
+           << ",\"bandwidth_utilization\":" << format_double(fingerprint.bandwidth_utilization)
+           << ",\"cv\":" << format_double(fingerprint.cv)
+           << ",\"block_sensitivity\":" << format_double(fingerprint.block_sensitivity)
+           << ",\"scaling_exponent\":" << format_double(fingerprint.scaling_exponent)
+           << ",\"num_regs\":" << fingerprint.num_regs
+           << ",\"local_size_bytes\":" << fingerprint.local_size_bytes
+           << ",\"shared_size_bytes\":" << fingerprint.shared_size_bytes << '}';
+}
+
 inline std::string escape_json_string(const std::string& value) {
     std::string escaped;
     escaped.reserve(value.size() + 8U);
@@ -137,6 +149,42 @@ inline std::string escape_json_string(const std::string& value) {
 
 inline void write_blank_csv_cell(std::ostream& stream) {
     stream << ',';
+}
+
+inline std::string join_recommendation_tags(const std::vector<analysis::Recommendation>& recommendations) {
+    std::string joined;
+
+    for (std::size_t index = 0; index < recommendations.size(); ++index) {
+        if (index > 0U) {
+            joined.push_back(';');
+        }
+
+        joined += recommendations[index].tag;
+    }
+
+    return joined;
+}
+
+inline void write_recommendation_json(std::ostream& stream, const analysis::Recommendation& recommendation) {
+    stream << "{\"tag\":\"" << escape_json_string(recommendation.tag) << "\",\"severity\":\""
+           << escape_json_string(recommendation.severity) << "\",\"summary\":\""
+           << escape_json_string(recommendation.summary) << "\",\"suggestion\":\""
+           << escape_json_string(recommendation.suggestion) << "\"}";
+}
+
+inline void write_recommendations_json(std::ostream& stream,
+                                       const std::vector<analysis::Recommendation>& recommendations) {
+    stream << '[';
+
+    for (std::size_t index = 0; index < recommendations.size(); ++index) {
+        if (index > 0U) {
+            stream << ',';
+        }
+
+        write_recommendation_json(stream, recommendations[index]);
+    }
+
+    stream << ']';
 }
 
 inline void write_benchmark_result_json(std::ostream& stream, const benchmark::BenchmarkResult& result) {
@@ -305,18 +353,24 @@ inline void export_csv(const std::filesystem::path& path, const pipeline::Pipeli
     std::ofstream stream = detail::open_output_file(path);
 
     stream << "kernel_name,device_id,correctness_enabled,correctness_passed,passed,benchmark_enabled,"
-              "autotune_enabled,benchmark_sample_count,benchmark_kernel_mean_ms,benchmark_kernel_median_ms,"
+              "autotune_enabled,diagnose_enabled,benchmark_sample_count,benchmark_kernel_mean_ms,"
+              "benchmark_kernel_median_ms,"
               "benchmark_kernel_p95_ms,benchmark_kernel_cv,benchmark_total_mean_ms,"
               "autotune_candidate_count,autotune_best_grid_x,autotune_best_block_x,"
               "autotune_best_shared_mem,autotune_best_device_id,autotune_kernel_mean_ms,"
-              "autotune_kernel_median_ms,autotune_kernel_p95_ms,autotune_kernel_cv,autotune_reason\n";
+              "autotune_kernel_median_ms,autotune_kernel_p95_ms,autotune_kernel_cv,autotune_reason,"
+              "fingerprint_transfer_compute_ratio,fingerprint_occupancy,fingerprint_bandwidth_utilization,"
+              "fingerprint_cv,fingerprint_block_sensitivity,fingerprint_scaling_exponent,"
+              "fingerprint_num_regs,fingerprint_local_size_bytes,fingerprint_shared_size_bytes,"
+              "recommendation_count,recommendation_tags\n";
 
     stream << detail::quote_csv(report.kernel_name()) << ',' << report.device_id() << ','
            << detail::format_bool(report.correctness_enabled()) << ','
            << detail::format_bool(report.correctness_passed()) << ','
            << detail::format_bool(report.passed()) << ','
            << detail::format_bool(report.benchmark_enabled()) << ','
-           << detail::format_bool(report.autotune_enabled());
+           << detail::format_bool(report.autotune_enabled()) << ','
+           << detail::format_bool(report.diagnose_enabled());
 
     if (report.benchmark_result().has_value()) {
         const benchmark::BenchmarkResult& benchmark_result = *report.benchmark_result();
@@ -349,6 +403,23 @@ inline void export_csv(const std::filesystem::path& path, const pipeline::Pipeli
         stream << ',' << detail::quote_csv("");
     }
 
+    if (report.fingerprint().has_value()) {
+        const analysis::KernelFingerprint& fingerprint = *report.fingerprint();
+        stream << ',' << detail::format_double(fingerprint.transfer_compute_ratio) << ','
+               << detail::format_double(fingerprint.occupancy) << ','
+               << detail::format_double(fingerprint.bandwidth_utilization) << ','
+               << detail::format_double(fingerprint.cv) << ','
+               << detail::format_double(fingerprint.block_sensitivity) << ','
+               << detail::format_double(fingerprint.scaling_exponent) << ',' << fingerprint.num_regs << ','
+               << fingerprint.local_size_bytes << ',' << fingerprint.shared_size_bytes;
+    } else {
+        for (int index = 0; index < 9; ++index) {
+            detail::write_blank_csv_cell(stream);
+        }
+    }
+
+    stream << ',' << report.recommendations().size() << ','
+           << detail::quote_csv(detail::join_recommendation_tags(report.recommendations()));
     stream << '\n';
 }
 
@@ -361,6 +432,7 @@ inline void export_json(const std::filesystem::path& path, const pipeline::Pipel
     stream << "\"passed\":" << detail::format_bool(report.passed()) << ',';
     stream << "\"benchmark_enabled\":" << detail::format_bool(report.benchmark_enabled()) << ',';
     stream << "\"autotune_enabled\":" << detail::format_bool(report.autotune_enabled()) << ',';
+    stream << "\"diagnose_enabled\":" << detail::format_bool(report.diagnose_enabled()) << ',';
     stream << "\"correctness\":{\"enabled\":" << detail::format_bool(report.correctness_enabled())
            << ",\"passed\":" << detail::format_bool(report.correctness_passed()) << '}';
 
@@ -372,6 +444,16 @@ inline void export_json(const std::filesystem::path& path, const pipeline::Pipel
     if (report.autotune_result().has_value()) {
         stream << ",\"autotune\":";
         detail::write_autotune_result_json(stream, *report.autotune_result());
+    }
+
+    if (report.fingerprint().has_value()) {
+        stream << ",\"fingerprint\":";
+        detail::write_fingerprint_json(stream, *report.fingerprint());
+    }
+
+    if (report.diagnose_enabled()) {
+        stream << ",\"recommendations\":";
+        detail::write_recommendations_json(stream, report.recommendations());
     }
 
     stream << '}';

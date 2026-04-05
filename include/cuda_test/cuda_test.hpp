@@ -6,6 +6,7 @@
 /// Individual module headers are included here as they become available.
 
 #include "cuda_test/analysis/metrics.hpp"
+#include "cuda_test/analysis/advisor.hpp"
 #include "cuda_test/analysis/bandwidth.hpp"
 #include "cuda_test/analysis/fingerprint.hpp"
 #include "cuda_test/analysis/kernel_attributes.hpp"

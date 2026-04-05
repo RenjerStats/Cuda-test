@@ -57,15 +57,27 @@ TEST(PipelineSuiteTest, NoStagePipelineReturnsVacuousSuccess) {
     EXPECT_FALSE(report.correctness_passed());
     EXPECT_FALSE(report.benchmark_enabled());
     EXPECT_FALSE(report.autotune_enabled());
+    EXPECT_FALSE(report.diagnose_enabled());
     EXPECT_TRUE(report.passed());
     EXPECT_FALSE(report.benchmark_result().has_value());
     EXPECT_FALSE(report.autotune_result().has_value());
+    EXPECT_FALSE(report.fingerprint().has_value());
+    EXPECT_TRUE(report.recommendations().empty());
 }
 
 TEST(PipelineSuiteTest, DeviceSelectionIsReflectedInNoStageReport) {
     const PipelineReport report = make_pipeline(make_no_stage_descriptor("unit_device")).device(3).run();
 
     EXPECT_EQ(report.device_id(), 3);
+    EXPECT_TRUE(report.passed());
+}
+
+TEST(PipelineSuiteTest, DiagnoseWithoutTimingDataLeavesFingerprintEmpty) {
+    const PipelineReport report = make_pipeline(make_no_stage_descriptor("unit_diagnose")).diagnose().run();
+
+    EXPECT_TRUE(report.diagnose_enabled());
+    EXPECT_FALSE(report.fingerprint().has_value());
+    EXPECT_TRUE(report.recommendations().empty());
     EXPECT_TRUE(report.passed());
 }
 
@@ -88,11 +100,15 @@ TEST(PipelineSuiteTest, PipelineReportExportsJsonAndCsvForNoStageRun) {
     EXPECT_NE(json.find("\"kernel_name\":\"unit_export\""), std::string::npos);
     EXPECT_NE(json.find("\"device_id\":5"), std::string::npos);
     EXPECT_NE(json.find("\"passed\":true"), std::string::npos);
+    EXPECT_NE(json.find("\"diagnose_enabled\":false"), std::string::npos);
     EXPECT_NE(json.find("\"correctness\":{\"enabled\":false,\"passed\":false}"), std::string::npos);
     EXPECT_EQ(json.find("\"benchmark\":"), std::string::npos);
     EXPECT_EQ(json.find("\"autotune\":"), std::string::npos);
+    EXPECT_EQ(json.find("\"fingerprint\":"), std::string::npos);
+    EXPECT_EQ(json.find("\"recommendations\":"), std::string::npos);
     EXPECT_NE(csv.find("kernel_name,device_id"), std::string::npos);
     EXPECT_NE(csv.find("\"unit_export\",5"), std::string::npos);
+    EXPECT_NE(csv.find("diagnose_enabled"), std::string::npos);
 }
 
 TEST(PipelineSuiteTest, SuiteRejectsDuplicateAndExportCollidingNames) {

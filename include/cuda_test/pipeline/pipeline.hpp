@@ -13,6 +13,77 @@
 
 namespace cuda_test::pipeline {
 
+namespace detail {
+
+inline bool same_launch_config(const core::KernelLaunchConfig& lhs, const core::KernelLaunchConfig& rhs) {
+    return lhs.grid.x == rhs.grid.x && lhs.grid.y == rhs.grid.y && lhs.grid.z == rhs.grid.z &&
+           lhs.block.x == rhs.block.x && lhs.block.y == rhs.block.y && lhs.block.z == rhs.block.z &&
+           lhs.shared_mem == rhs.shared_mem && lhs.device_id == rhs.device_id;
+}
+
+inline const autotune::CandidateRecord* find_selected_candidate(const autotune::AutoTuneResult& result) {
+    for (const autotune::CandidateRecord& candidate : result.all_candidates) {
+        if (same_launch_config(candidate.config, result.best) &&
+            candidate.benchmark.kernel_stats.median_ms == result.stats.median_ms &&
+            candidate.benchmark.kernel_stats.p95_ms == result.stats.p95_ms &&
+            candidate.benchmark.kernel_stats.cv == result.stats.cv) {
+            return &candidate;
+        }
+    }
+
+    return nullptr;
+}
+
+inline core::ProfilingBreakdown make_median_breakdown(const benchmark::BenchmarkResult& result) {
+    core::ProfilingBreakdown breakdown;
+    breakdown.h2d_ms = result.h2d_stats.median_ms;
+    breakdown.kernel_ms = result.kernel_stats.median_ms;
+    breakdown.d2h_ms = result.d2h_stats.median_ms;
+    breakdown.total_ms = result.total_stats.median_ms;
+    return breakdown;
+}
+
+inline std::optional<analysis::KernelFingerprint> build_diagnostics_fingerprint(
+    const PipelineReport& report) {
+    const benchmark::BenchmarkResult* timing_result = nullptr;
+    if (report.benchmark_result().has_value()) {
+        timing_result = &*report.benchmark_result();
+    } else if (report.autotune_result().has_value()) {
+        if (const autotune::CandidateRecord* winner = find_selected_candidate(*report.autotune_result());
+            winner != nullptr) {
+            timing_result = &winner->benchmark;
+        }
+    }
+
+    if (timing_result == nullptr) {
+        return std::nullopt;
+    }
+
+    const core::ProfilingBreakdown breakdown = make_median_breakdown(*timing_result);
+    if (breakdown.kernel_ms <= 0.0) {
+        return std::nullopt;
+    }
+
+    double block_sensitivity_value = 0.0;
+    if (report.autotune_result().has_value() && !report.autotune_result()->all_candidates.empty()) {
+        const bool can_measure_block_sensitivity =
+            std::all_of(report.autotune_result()->all_candidates.begin(),
+                        report.autotune_result()->all_candidates.end(),
+                        [](const autotune::CandidateRecord& candidate) {
+                            return candidate.benchmark.kernel_stats.median_ms > 0.0;
+                        });
+
+        if (can_measure_block_sensitivity) {
+            block_sensitivity_value = analysis::block_sensitivity(report.autotune_result()->all_candidates);
+        }
+    }
+
+    return analysis::build_fingerprint(
+        breakdown, timing_result->kernel_stats, {}, {}, {}, block_sensitivity_value, 0.0);
+}
+
+} // namespace detail
+
 class Pipeline {
 public:
     explicit Pipeline(KernelDescriptor descriptor) : descriptor_(std::move(descriptor)) {
@@ -49,6 +120,11 @@ public:
         return autotune(std::move(spec));
     }
 
+    Pipeline& diagnose() {
+        diagnose_enabled_ = true;
+        return *this;
+    }
+
     [[nodiscard]] PipelineReport run() const {
         PipelineReport report;
         report.kernel_name_ = descriptor_.name();
@@ -56,6 +132,7 @@ public:
         report.correctness_enabled_ = correctness_enabled_;
         report.benchmark_enabled_ = benchmark_config_.has_value();
         report.autotune_enabled_ = autotune_spec_.has_value();
+        report.diagnose_enabled_ = diagnose_enabled_;
 
         std::optional<core::KernelLaunchConfig> baseline_config;
         if (correctness_enabled_ || benchmark_config_.has_value()) {
@@ -87,6 +164,14 @@ public:
                 [this](const core::KernelLaunchConfig& config) { return descriptor_.validate(config); });
         }
 
+        if (diagnose_enabled_) {
+            if (const auto fingerprint = detail::build_diagnostics_fingerprint(report);
+                fingerprint.has_value()) {
+                report.fingerprint_ = *fingerprint;
+                report.recommendations_ = analysis::diagnose(*fingerprint);
+            }
+        }
+
         return report;
     }
 
@@ -96,6 +181,7 @@ private:
     bool correctness_enabled_ = false;
     std::optional<benchmark::BenchmarkConfig> benchmark_config_{};
     std::optional<autotune::AutoTuneSpec> autotune_spec_{};
+    bool diagnose_enabled_ = false;
 };
 
 [[nodiscard]] inline auto make_pipeline(KernelDescriptor descriptor) {

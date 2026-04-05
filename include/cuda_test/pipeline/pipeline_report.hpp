@@ -1,5 +1,7 @@
 #pragma once
 
+#include "cuda_test/analysis/advisor.hpp"
+#include "cuda_test/analysis/fingerprint.hpp"
 #include "cuda_test/autotune/search.hpp"
 #include "cuda_test/benchmark/benchmark_runner.hpp"
 
@@ -88,6 +90,10 @@ public:
         return autotune_enabled_;
     }
 
+    [[nodiscard]] bool diagnose_enabled() const noexcept {
+        return diagnose_enabled_;
+    }
+
     [[nodiscard]] bool passed() const noexcept {
         return !correctness_enabled_ || correctness_passed_;
     }
@@ -98,6 +104,14 @@ public:
 
     [[nodiscard]] const std::optional<autotune::AutoTuneResult>& autotune_result() const noexcept {
         return autotune_result_;
+    }
+
+    [[nodiscard]] const std::optional<analysis::KernelFingerprint>& fingerprint() const noexcept {
+        return fingerprint_;
+    }
+
+    [[nodiscard]] const std::vector<analysis::Recommendation>& recommendations() const noexcept {
+        return recommendations_;
     }
 
     void to_csv(const std::filesystem::path& path) const {
@@ -115,8 +129,11 @@ private:
     bool correctness_passed_ = false;
     bool benchmark_enabled_ = false;
     bool autotune_enabled_ = false;
+    bool diagnose_enabled_ = false;
     std::optional<benchmark::BenchmarkResult> benchmark_result_{};
     std::optional<autotune::AutoTuneResult> autotune_result_{};
+    std::optional<analysis::KernelFingerprint> fingerprint_{};
+    std::vector<analysis::Recommendation> recommendations_{};
 
     friend class Pipeline;
     friend class SuiteReport;
