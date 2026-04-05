@@ -18,3 +18,26 @@ endif()
 if(CUDA_TEST_ENABLE_WARNINGS)
   cuda_test_apply_warnings(cuda_test)
 endif()
+
+if(TARGET GTest::gtest)
+  add_library(cuda_test_testing INTERFACE)
+  add_library(cuda_test::testing ALIAS cuda_test_testing)
+
+  target_include_directories(
+    cuda_test_testing
+    INTERFACE
+      $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>
+  )
+  target_link_libraries(
+    cuda_test_testing
+    INTERFACE
+      cuda_test::cuda_test
+      $<BUILD_LOCAL_INTERFACE:GTest::gtest>
+      $<INSTALL_INTERFACE:GTest::gtest>
+  )
+
+  set_target_properties(cuda_test_testing PROPERTIES EXPORT_NAME testing)
+endif()
+
+install(TARGETS cuda_test EXPORT cuda_testTargets)

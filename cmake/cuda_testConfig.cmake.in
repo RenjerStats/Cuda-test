@@ -1,0 +1,45 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+set(cuda_test_CUDA_ENABLED "@CUDA_TEST_HAS_CUDA@")
+set(cuda_test_HAS_TESTING_TARGET "@CUDA_TEST_INSTALL_TESTING_TARGET@")
+
+set(_cuda_test_supported_components testing)
+foreach(_cuda_test_component IN LISTS cuda_test_FIND_COMPONENTS)
+  if(NOT _cuda_test_component IN_LIST _cuda_test_supported_components)
+    set(cuda_test_FOUND FALSE)
+    set(cuda_test_NOT_FOUND_MESSAGE "Unsupported cuda_test component: ${_cuda_test_component}")
+    return()
+  endif()
+endforeach()
+
+if(cuda_test_CUDA_ENABLED)
+  find_dependency(CUDAToolkit REQUIRED)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/cuda_testTargets.cmake")
+
+if("testing" IN_LIST cuda_test_FIND_COMPONENTS)
+  if(NOT cuda_test_HAS_TESTING_TARGET)
+    set(cuda_test_testing_FOUND FALSE)
+    set(cuda_test_FOUND FALSE)
+    set(cuda_test_NOT_FOUND_MESSAGE
+        "The installed cuda_test package was built without the optional testing component")
+    return()
+  endif()
+
+  find_dependency(GTest REQUIRED)
+
+  if(NOT TARGET cuda_test::testing)
+    add_library(cuda_test::testing INTERFACE IMPORTED)
+    set_target_properties(cuda_test::testing PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES "${PACKAGE_PREFIX_DIR}/include"
+      INTERFACE_LINK_LIBRARIES "cuda_test::cuda_test;GTest::gtest"
+    )
+  endif()
+
+  set(cuda_test_testing_FOUND TRUE)
+endif()
+
+check_required_components(cuda_test)
