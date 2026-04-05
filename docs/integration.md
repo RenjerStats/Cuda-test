@@ -19,6 +19,8 @@ find_package(cuda_test 0.2.0 REQUIRED COMPONENTS testing)
 target_link_libraries(my_test PRIVATE cuda_test::testing)
 ```
 
+This component expects Google Test to be resolvable by the consumer build.
+
 ## FetchContent
 
 ```cmake
@@ -48,3 +50,6 @@ set(CUDA_TEST_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(extern/cuda_test)
 target_link_libraries(my_app PRIVATE cuda_test::cuda_test)
 ```
+
+If you want to use `cuda_test::testing` with `add_subdirectory`, make `GTest::gtest`
+available in the parent project before linking that target.
