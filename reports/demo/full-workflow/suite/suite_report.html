@@ -1,0 +1,279 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>cuda_test Suite Report: demo_saxpy_suite</title><style>
+:root {
+  --bg: #f6f1e7;
+  --paper: rgba(255, 252, 245, 0.94);
+  --paper-strong: rgba(255, 255, 255, 0.98);
+  --ink: #1f2722;
+  --muted: #5f6d65;
+  --border: #d8cfbf;
+  --shadow: 0 24px 60px rgba(54, 40, 22, 0.12);
+  --accent: #1d7a63;
+  --accent-soft: #dbf1e8;
+  --blue: #1f6fb3;
+  --blue-soft: #e2f0fb;
+  --amber: #c8791b;
+  --amber-soft: #fff1df;
+  --red: #b84338;
+  --red-soft: #fde5df;
+  --green: #1f7a63;
+  --green-soft: #ddf2e9;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(31, 122, 99, 0.12), transparent 30%),
+    radial-gradient(circle at top right, rgba(31, 111, 179, 0.10), transparent 24%),
+    linear-gradient(180deg, #fbf7f0 0%, #f2ebdd 100%);
+}
+main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 36px 20px 56px;
+}
+h1, h2, h3 {
+  font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+p { line-height: 1.6; }
+a { color: var(--blue); }
+.hero,
+.pipeline-article,
+.panel,
+.summary-table {
+  background: var(--paper);
+  border: 1px solid rgba(216, 207, 191, 0.9);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+}
+.hero {
+  padding: 28px;
+  margin-bottom: 22px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.94), rgba(249,243,233,0.92)),
+    linear-gradient(135deg, rgba(31,122,99,0.08), transparent);
+}
+.article-header {
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(216, 207, 191, 0.9);
+}
+.eyebrow {
+  margin: 0 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.hero h1,
+.article-header h2 {
+  font-size: clamp(1.8rem, 2.4vw, 3rem);
+  margin-bottom: 10px;
+}
+.meta-line {
+  color: var(--muted);
+  margin: 0;
+}
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+.pill.pass { background: var(--green-soft); color: var(--green); }
+.pill.fail { background: var(--red-soft); color: var(--red); }
+.pill.off { background: #ece7de; color: #635f58; }
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.metric-card {
+  background: var(--paper-strong);
+  border: 1px solid rgba(216, 207, 191, 0.9);
+  border-radius: 18px;
+  padding: 18px;
+}
+.metric-card .label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+.metric-card .value {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+.metric-card .detail {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+}
+.panel,
+.pipeline-article,
+.summary-table {
+  padding: 22px;
+  margin-bottom: 18px;
+}
+.section-heading {
+  margin-bottom: 14px;
+}
+.section-heading h2,
+.section-heading h3 {
+  margin-bottom: 6px;
+}
+.muted { color: var(--muted); }
+.empty {
+  color: var(--muted);
+  background: rgba(246, 241, 231, 0.8);
+}
+.table-wrap {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+th, td {
+  padding: 11px 12px;
+  border-bottom: 1px solid rgba(216, 207, 191, 0.75);
+  text-align: left;
+  vertical-align: top;
+}
+thead th {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+tbody tr:nth-child(even) {
+  background: rgba(248, 243, 235, 0.65);
+}
+.winner-row {
+  background: rgba(221, 242, 233, 0.85) !important;
+}
+.winner-chip {
+  color: var(--green);
+  font-weight: 800;
+}
+.chart {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-top: 8px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.78), rgba(245,238,228,0.74));
+  border: 1px solid rgba(216, 207, 191, 0.75);
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+.swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+}
+.rec-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+.rec-card {
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid rgba(216, 207, 191, 0.9);
+  background: var(--paper-strong);
+}
+.rec-card h3 {
+  font-size: 1.15rem;
+  margin-bottom: 8px;
+}
+.rec-card .tag {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.sev-critical {
+  border-left: 5px solid var(--red);
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(253,229,223,0.74));
+}
+.sev-critical .tag {
+  background: var(--red-soft);
+  color: var(--red);
+}
+.sev-warning {
+  border-left: 5px solid var(--amber);
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,241,223,0.76));
+}
+.sev-warning .tag {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+.sev-info {
+  border-left: 5px solid var(--blue);
+  background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(226,240,251,0.72));
+}
+.sev-info .tag {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+.suite-summary a {
+  font-weight: 700;
+  text-decoration: none;
+}
+.raw-note {
+  margin-top: 12px;
+  color: var(--muted);
+}
+code {
+  font-family: Consolas, "Liberation Mono", monospace;
+  font-size: 0.92em;
+}
+@media (max-width: 820px) {
+  main {
+    padding: 24px 14px 40px;
+  }
+  .hero,
+  .panel,
+  .summary-table,
+  .pipeline-article {
+    padding: 18px;
+    border-radius: 18px;
+  }
+  table {
+    min-width: 560px;
+  }
+}
+</style></head><body><main><header class="hero"><p class="eyebrow">cuda_test suite report</p><h1>demo_saxpy_suite</h1><p class="meta-line">2 kernel report(s) | Generated 2026-04-05 20:47:16 | cuda_test v0.2.0</p><div class="badge-row"><span class="pill pass">All reports passed</span></div></header><section class="summary-table suite-summary" id="suite-summary"><div class="section-heading"><p class="eyebrow">Overview</p><h2>Kernel summary</h2><p class="muted">Best-config timing is taken from autotune when available; otherwise the baseline benchmark is shown.</p></div><div class="table-wrap"><table><thead><tr><th>Kernel</th><th>Status</th><th>Best config</th><th>Baseline median</th><th>Best median</th><th>Speedup</th><th>Findings</th></tr></thead><tbody><tr><td><a href="#kernel-demo_saxpy_small_f32">demo_saxpy_small_f32</a></td><td>Passed</td><td>block 128x1x1 / grid 4096x1x1</td><td>0.050991998985409737 ms</td><td>0.047343999147415161 ms</td><td>1.0770530564314136x</td><td>0</td></tr><tr><td><a href="#kernel-demo_saxpy_negative_alpha_f32">demo_saxpy_negative_alpha_f32</a></td><td>Passed</td><td>block 128x1x1 / grid 2048x1x1</td><td>0.60681602358818054 ms</td><td>0.64399999380111694 ms</td><td>0.94226091526264866x</td><td>0</td></tr></tbody></table></div></section><article class="pipeline-article" id="kernel-demo_saxpy_small_f32"><div class="article-header"><p class="eyebrow">Kernel section</p><h2>demo_saxpy_small_f32</h2><p class="meta-line">NVIDIA GeForce RTX 4070 Laptop GPU (device 0, cc 8.9, 8.00 GiB)</p></div><section class="card-grid"><div class="metric-card"><span class="label">Pipeline status</span><span class="value">Passed</span><span class="detail">Correctness stage executed</span></div><div class="metric-card"><span class="label">Baseline median</span><span class="value">0.050991998985409737 ms</span><span class="detail">Baseline kernel median</span></div><div class="metric-card"><span class="label">Autotune best</span><span class="value">0.047343999147415161 ms</span><span class="detail">block 128x1x1 / grid 4096x1x1</span></div><div class="metric-card"><span class="label">Speedup</span><span class="value">1.0770530564314136x</span><span class="detail">Baseline median / best autotune median</span></div><div class="metric-card"><span class="label">Diagnostics</span><span class="value">Not run</span><span class="detail">Diagnostics stage was skipped</span></div></section><section class="panel" id="kernel-demo_saxpy_small_f32-correctness"><div class="section-heading"><p class="eyebrow">Validation</p><h2>Correctness</h2></div><div class="badge-row"><span class="pill pass">Passed</span></div><p class="raw-note">Pipeline-level success is defined by the correctness gate when it is enabled.</p></section><section class="panel" id="kernel-demo_saxpy_small_f32-autotune"><div class="section-heading"><p class="eyebrow">Autotune</p><h2>Candidate sweep</h2><p class="muted">Every valid candidate is listed below; the chart shows the top 10 by median kernel time.</p></div><div class="table-wrap"><table><thead><tr><th>Winner</th><th>Block</th><th>Grid</th><th>Wave</th><th>Shared</th><th>Median</th><th>P95</th><th>CV</th></tr></thead><tbody><tr><td>&nbsp;</td><td>64x1x1</td><td>4096x1x1</td><td>1</td><td>0</td><td>0.05870399996638298 ms</td><td>0.17653280496597284 ms</td><td>0.58190779621430622</td></tr><tr><td>&nbsp;</td><td>64x1x1</td><td>8192x1x1</td><td>2</td><td>0</td><td>0.060559999197721481 ms</td><td>0.12131839692592619 ms</td><td>0.39815184609801257</td></tr><tr><td>&nbsp;</td><td>128x1x1</td><td>2048x1x1</td><td>1</td><td>0</td><td>0.055296000093221664 ms</td><td>0.13964640274643889 ms</td><td>0.54193438977098385</td></tr><tr class="winner-row"><td><span class="winner-chip">best</span></td><td>128x1x1</td><td>4096x1x1</td><td>2</td><td>0</td><td>0.047343999147415161 ms</td><td>0.10433920063078403 ms</td><td>0.38345467460651772</td></tr><tr><td>&nbsp;</td><td>256x1x1</td><td>1024x1x1</td><td>1</td><td>0</td><td>0.47363199293613434 ms</td><td>1.2937407910823819 ms</td><td>0.96227907108615562</td></tr><tr><td>&nbsp;</td><td>256x1x1</td><td>2048x1x1</td><td>2</td><td>0</td><td>0.41435199975967407 ms</td><td>1.3996400356292724 ms</td><td>1.0321390126888064</td></tr></tbody></table></div><svg class="chart" viewBox="0 0 760 238" role="img" aria-label="Autotune candidate median chart"><text x="12" y="32" font-size="12" fill="#4f5b54">block 128 / grid 4096</text><rect x="250" y="18" width="36" height="18" rx="9" fill="#1d7a63"></rect><text x="296" y="31" font-size="12" fill="#1f2722">0.047343999147415161 ms</text><text x="12" y="66" font-size="12" fill="#4f5b54">block 128 / grid 2048</text><rect x="250" y="52" width="42" height="18" rx="9" fill="#7da895"></rect><text x="302" y="65" font-size="12" fill="#1f2722">0.055296000093221664 ms</text><text x="12" y="100" font-size="12" fill="#4f5b54">block 64 / grid 4096</text><rect x="250" y="86" width="45" height="18" rx="9" fill="#7da895"></rect><text x="305" y="99" font-size="12" fill="#1f2722">0.05870399996638298 ms</text><text x="12" y="134" font-size="12" fill="#4f5b54">block 64 / grid 8192</text><rect x="250" y="120" width="47" height="18" rx="9" fill="#7da895"></rect><text x="307" y="133" font-size="12" fill="#1f2722">0.060559999197721481 ms</text><text x="12" y="168" font-size="12" fill="#4f5b54">block 256 / grid 2048</text><rect x="250" y="154" width="321" height="18" rx="9" fill="#7da895"></rect><text x="581" y="167" font-size="12" fill="#1f2722">0.41435199975967407 ms</text><text x="12" y="202" font-size="12" fill="#4f5b54">block 256 / grid 1024</text><rect x="250" y="188" width="368" height="18" rx="9" fill="#7da895"></rect><text x="628" y="201" font-size="12" fill="#1f2722">0.47363199293613434 ms</text></svg></section><section class="panel" id="kernel-demo_saxpy_small_f32-breakdown"><div class="section-heading"><p class="eyebrow">Timing</p><h2>Stage breakdown</h2><p class="muted">Winning autotune candidate</p></div><svg class="chart" viewBox="0 0 760 120" role="img" aria-label="Stage breakdown chart"><rect x="20" y="44" width="280" height="28" rx="14" fill="#1f6fb3"></rect><rect x="300" y="44" width="41" height="28" fill="#1d7a63"></rect><rect x="341" y="44" width="399" height="28" rx="14" fill="#c8791b"></rect><text x="20" y="26" font-size="13" fill="#4f5b54">Median stage share</text></svg><div class="legend"><span><i class="swatch" style="background:#1f6fb3"></i>H2D 0.32268799841403961 ms (39.0%)</span><span><i class="swatch" style="background:#1d7a63"></i>Kernel 0.047343999147415161 ms (5.7%)</span><span><i class="swatch" style="background:#c8791b"></i>D2H 0.45744000375270844 ms (55.3%)</span></div></section><section class="panel" id="kernel-demo_saxpy_small_f32-timing"><div class="section-heading"><p class="eyebrow">Timing</p><h2>Timing summary</h2><p class="muted">Winning autotune candidate</p></div><div class="table-wrap"><table><thead><tr><th>Stage</th><th>Mean</th><th>Median</th><th>P95</th><th>CI95 low</th><th>CI95 high</th><th>CV</th></tr></thead><tbody><tr><td>H2D</td><td>0.32614719967047373 ms</td><td>0.32268799841403961 ms</td><td>0.35307839810848235 ms</td><td>0.31810731147476878 ms</td><td>0.33418708786617868 ms</td><td>0.068887577309782747</td></tr><tr><td>Kernel</td><td>0.059592533235748611 ms</td><td>0.047343999147415161 ms</td><td>0.10433920063078403 ms</td><td>0.051415395221175234 ms</td><td>0.067769671250321989 ms</td><td>0.38345467460651772</td></tr><tr><td>D2H</td><td>0.45744533240795138 ms</td><td>0.45744000375270844 ms</td><td>0.48657920509576791 ms</td><td>0.45092008652701093 ms</td><td>0.46397057828889182 ms</td><td>0.039862289289964041</td></tr><tr><td>Total</td><td>0.88348692456881206 ms</td><td>0.8710399866104126 ms</td><td>0.99067676961421935 ms</td><td>0.86540343071295323 ms</td><td>0.90157041842467089 ms</td><td>0.057198780889492151</td></tr></tbody></table></div></section><section class="panel" id="kernel-demo_saxpy_small_f32-recommendations"><div class="section-heading"><p class="eyebrow">Diagnostics</p><h2>Recommendations</h2></div><p class="muted">Diagnostics were not run for this pipeline.</p></section></article><article class="pipeline-article" id="kernel-demo_saxpy_negative_alpha_f32"><div class="article-header"><p class="eyebrow">Kernel section</p><h2>demo_saxpy_negative_alpha_f32</h2><p class="meta-line">NVIDIA GeForce RTX 4070 Laptop GPU (device 0, cc 8.9, 8.00 GiB)</p></div><section class="card-grid"><div class="metric-card"><span class="label">Pipeline status</span><span class="value">Passed</span><span class="detail">Correctness stage executed</span></div><div class="metric-card"><span class="label">Baseline median</span><span class="value">0.60681602358818054 ms</span><span class="detail">Baseline kernel median</span></div><div class="metric-card"><span class="label">Autotune best</span><span class="value">0.64399999380111694 ms</span><span class="detail">block 128x1x1 / grid 2048x1x1</span></div><div class="metric-card"><span class="label">Speedup</span><span class="value">0.94226091526264866x</span><span class="detail">Baseline median / best autotune median</span></div><div class="metric-card"><span class="label">Diagnostics</span><span class="value">Not run</span><span class="detail">Diagnostics stage was skipped</span></div></section><section class="panel" id="kernel-demo_saxpy_negative_alpha_f32-correctness"><div class="section-heading"><p class="eyebrow">Validation</p><h2>Correctness</h2></div><div class="badge-row"><span class="pill pass">Passed</span></div><p class="raw-note">Pipeline-level success is defined by the correctness gate when it is enabled.</p></section><section class="panel" id="kernel-demo_saxpy_negative_alpha_f32-autotune"><div class="section-heading"><p class="eyebrow">Autotune</p><h2>Candidate sweep</h2><p class="muted">Every valid candidate is listed below; the chart shows the top 10 by median kernel time.</p></div><div class="table-wrap"><table><thead><tr><th>Winner</th><th>Block</th><th>Grid</th><th>Wave</th><th>Shared</th><th>Median</th><th>P95</th><th>CV</th></tr></thead><tbody><tr><td>&nbsp;</td><td>64x1x1</td><td>4096x1x1</td><td>1</td><td>0</td><td>0.73289600014686584 ms</td><td>1.1557759881019585 ms</td><td>0.30167117337134491</td></tr><tr><td>&nbsp;</td><td>64x1x1</td><td>8192x1x1</td><td>2</td><td>0</td><td>0.71438398957252502 ms</td><td>1.2393728137016295 ms</td><td>0.33885601782473584</td></tr><tr class="winner-row"><td><span class="winner-chip">best</span></td><td>128x1x1</td><td>2048x1x1</td><td>1</td><td>0</td><td>0.64399999380111694 ms</td><td>1.4138144075870511 ms</td><td>0.51505980633985882</td></tr><tr><td>&nbsp;</td><td>128x1x1</td><td>4096x1x1</td><td>2</td><td>0</td><td>0.77478399872779846 ms</td><td>0.92769759595394097 ms</td><td>0.31626281174033471</td></tr><tr><td>&nbsp;</td><td>256x1x1</td><td>1024x1x1</td><td>1</td><td>0</td><td>0.77775999903678894 ms</td><td>1.2748463988304135 ms</td><td>0.24356464213842813</td></tr><tr><td>&nbsp;</td><td>256x1x1</td><td>2048x1x1</td><td>2</td><td>0</td><td>1.0290560126304626 ms</td><td>2.8743391990661591 ms</td><td>0.65451413189391006</td></tr></tbody></table></div><svg class="chart" viewBox="0 0 760 238" role="img" aria-label="Autotune candidate median chart"><text x="12" y="32" font-size="12" fill="#4f5b54">block 128 / grid 2048</text><rect x="250" y="18" width="230" height="18" rx="9" fill="#1d7a63"></rect><text x="490" y="31" font-size="12" fill="#1f2722">0.64399999380111694 ms</text><text x="12" y="66" font-size="12" fill="#4f5b54">block 64 / grid 8192</text><rect x="250" y="52" width="255" height="18" rx="9" fill="#7da895"></rect><text x="515" y="65" font-size="12" fill="#1f2722">0.71438398957252502 ms</text><text x="12" y="100" font-size="12" fill="#4f5b54">block 64 / grid 4096</text><rect x="250" y="86" width="262" height="18" rx="9" fill="#7da895"></rect><text x="522" y="99" font-size="12" fill="#1f2722">0.73289600014686584 ms</text><text x="12" y="134" font-size="12" fill="#4f5b54">block 128 / grid 4096</text><rect x="250" y="120" width="277" height="18" rx="9" fill="#7da895"></rect><text x="537" y="133" font-size="12" fill="#1f2722">0.77478399872779846 ms</text><text x="12" y="168" font-size="12" fill="#4f5b54">block 256 / grid 1024</text><rect x="250" y="154" width="278" height="18" rx="9" fill="#7da895"></rect><text x="538" y="167" font-size="12" fill="#1f2722">0.77775999903678894 ms</text><text x="12" y="202" font-size="12" fill="#4f5b54">block 256 / grid 2048</text><rect x="250" y="188" width="368" height="18" rx="9" fill="#7da895"></rect><text x="628" y="201" font-size="12" fill="#1f2722">1.0290560126304626 ms</text></svg></section><section class="panel" id="kernel-demo_saxpy_negative_alpha_f32-breakdown"><div class="section-heading"><p class="eyebrow">Timing</p><h2>Stage breakdown</h2><p class="muted">Winning autotune candidate</p></div><svg class="chart" viewBox="0 0 760 120" role="img" aria-label="Stage breakdown chart"><rect x="20" y="44" width="234" height="28" rx="14" fill="#1f6fb3"></rect><rect x="254" y="44" width="242" height="28" fill="#1d7a63"></rect><rect x="496" y="44" width="244" height="28" rx="14" fill="#c8791b"></rect><text x="20" y="26" font-size="13" fill="#4f5b54">Median stage share</text></svg><div class="legend"><span><i class="swatch" style="background:#1f6fb3"></i>H2D 0.6223360002040863 ms (32.5%)</span><span><i class="swatch" style="background:#1d7a63"></i>Kernel 0.64399999380111694 ms (33.6%)</span><span><i class="swatch" style="background:#c8791b"></i>D2H 0.6483519971370697 ms (33.9%)</span></div></section><section class="panel" id="kernel-demo_saxpy_negative_alpha_f32-timing"><div class="section-heading"><p class="eyebrow">Timing</p><h2>Timing summary</h2><p class="muted">Winning autotune candidate</p></div><div class="table-wrap"><table><thead><tr><th>Stage</th><th>Mean</th><th>Median</th><th>P95</th><th>CI95 low</th><th>CI95 high</th><th>CV</th></tr></thead><tbody><tr><td>H2D</td><td>0.62274240056673691 ms</td><td>0.6223360002040863 ms</td><td>0.68710238933563228 ms</td><td>0.60623701209989023 ms</td><td>0.63924778903358359 ms</td><td>0.074066508040542725</td></tr><tr><td>Kernel</td><td>0.68285546998182933 ms</td><td>0.64399999380111694 ms</td><td>1.4138144075870511 ms</td><td>0.55699715968166819 ms</td><td>0.80871378028199048 ms</td><td>0.51505980633985882</td></tr><tr><td>D2H</td><td>0.70490773121515915 ms</td><td>0.6483519971370697 ms</td><td>0.82258560359477984 ms</td><td>0.62016902784698091 ms</td><td>0.78964643458333739 ms</td><td>0.33593410471768337</td></tr><tr><td>Total</td><td>2.1066186587015787 ms</td><td>2.0790399312973022 ms</td><td>2.9397855997085571 ms</td><td>1.9398017136868457 ms</td><td>2.2734356037163117 ms</td><td>0.22128847355195727</td></tr></tbody></table></div></section><section class="panel" id="kernel-demo_saxpy_negative_alpha_f32-recommendations"><div class="section-heading"><p class="eyebrow">Diagnostics</p><h2>Recommendations</h2></div><p class="muted">Diagnostics were not run for this pipeline.</p></section></article><section class="panel"><div class="section-heading"><p class="eyebrow">Raw data</p><h2>Embedded machine-readable JSON</h2><p class="muted">The full report payload is stored in an inline <code>application/json</code> script tag for downstream tooling.</p></div></section><script type="application/json" id="suite-raw-data">{"name":"demo_saxpy_suite","all_passed":true,"report_count":2,"reports":[{"kernel_name":"demo_saxpy_small_f32","device_id":0,"passed":true,"benchmark_enabled":true,"autotune_enabled":true,"diagnose_enabled":false,"correctness":{"enabled":true,"passed":true},"benchmark":{"sample_count":30,"h2d_stats":{"mean_ms":0.33618879814942676,"median_ms":0.33078399300575256,"p95_ms":0.35915998816490169,"ci95_low":0.32847394677699904,"ci95_high":0.34390364952185448,"cv":0.064128175070541693},"kernel_stats":{"mean_ms":0.06367893293499946,"median_ms":0.050991998985409737,"p95_ms":0.10783520080149173,"ci95_low":0.053885587836415012,"ci95_high":0.073472278033583915,"cv":0.42977370180274183},"d2h_stats":{"mean_ms":0.48704319993654888,"median_ms":0.47088000178337097,"p95_ms":0.56496959924697876,"ci95_low":0.47345710881618452,"ci95_high":0.50062929105691323,"cv":0.077952777669976131},"total_stats":{"mean_ms":0.92412053147951767,"median_ms":0.89907199144363403,"p95_ms":1.057313585281372,"ci95_low":0.89755687591155875,"ci95_high":0.95068418704747659,"cv":0.0803274124035014}},"autotune":{"candidate_count":6,"best":{"grid":{"x":4096,"y":1,"z":1},"block":{"x":128,"y":1,"z":1},"shared_mem":0,"device_id":0},"stats":{"mean_ms":0.059592533235748611,"median_ms":0.047343999147415161,"p95_ms":0.10433920063078403,"ci95_low":0.051415395221175234,"ci95_high":0.067769671250321989,"cv":0.38345467460651772},"reason":"Selected block=128, grid=4096 with kernel median_ms=0.047344 because it had the lowest median_ms.","all_candidates":[{"grid_wave_multiplier":1,"config":{"grid":{"x":4096,"y":1,"z":1},"block":{"x":64,"y":1,"z":1},"shared_mem":0,"device_id":0},"h2d_stats":{"mean_ms":0.35985173185666403,"median_ms":0.34822399914264679,"p95_ms":0.46985120624303783,"ci95_low":0.34052665006912736,"ci95_high":0.37917681364420069,"cv":0.15007290848698038},"kernel_stats":{"mean_ms":0.086171733712156612,"median_ms":0.05870399996638298,"p95_ms":0.17653280496597284,"ci95_low":0.068227932452251241,"ci95_high":0.10411553497206198,"cv":0.58190779621430622},"d2h_stats":{"mean_ms":0.49007039964199067,"median_ms":0.47196799516677856,"p95_ms":0.55547359585762024,"ci95_low":0.47083957546482957,"ci95_high":0.50930122381915177,"cv":0.10965892431528866},"total_stats":{"mean_ms":0.99147520065307615,"median_ms":0.9333919882774353,"p95_ms":1.2868799865245819,"ci95_low":0.93848391823586952,"ci95_high":1.0444664830702828,"cv":0.14935753243902974}},{"grid_wave_multiplier":2,"config":{"grid":{"x":8192,"y":1,"z":1},"block":{"x":64,"y":1,"z":1},"shared_mem":0,"device_id":0},"h2d_stats":{"mean_ms":0.33580906490484874,"median_ms":0.33353599905967712,"p95_ms":0.37484960556030267,"ci95_low":0.32677382550520273,"ci95_high":0.34484430430449475,"cv":0.075188566483241306},"kernel_stats":{"mean_ms":0.079788799708088234,"median_ms":0.060559999197721481,"p95_ms":0.12131839692592619,"ci95_low":0.06842074618643211,"ci95_high":0.091156853229744358,"cv":0.39815184609801257},"d2h_stats":{"mean_ms":0.49340053101380665,"median_ms":0.4745279997587204,"p95_ms":0.56912317574024196,"ci95_low":0.47217219012656764,"ci95_high":0.51462887190104567,"cv":0.12023225607335593},"total_stats":{"mean_ms":0.94876586397488916,"median_ms":0.93327999114990234,"p95_ms":1.1307919681072232,"ci95_low":0.91072910598591428,"ci95_high":0.98680262196386404,"cv":0.11203378244149691}},{"grid_wave_multiplier":1,"config":{"grid":{"x":2048,"y":1,"z":1},"block":{"x":128,"y":1,"z":1},"shared_mem":0,"device_id":0},"h2d_stats":{"mean_ms":0.34144533177216846,"median_ms":0.32793599367141724,"p95_ms":0.36927839815616603,"ci95_low":0.32178126467225954,"ci95_high":0.36110939887207738,"cv":0.16093730483365362},"kernel_stats":{"mean_ms":0.078660267094771072,"median_ms":0.055296000093221664,"p95_ms":0.13964640274643889,"ci95_low":0.063405781334473069,"ci95_high":0.093914752855069075,"cv":0.54193438977098385},"d2h_stats":{"mean_ms":0.47153813540935519,"median_ms":0.46340799331665039,"p95_ms":0.51750401556491843,"ci95_low":0.46243217187079155,"ci95_high":0.48064409894791882,"cv":0.053965181389955527},"total_stats":{"mean_ms":0.93226454257965086,"median_ms":0.90806400775909424,"p95_ms":1.081164824962616,"ci95_low":0.89431743591452695,"ci95_high":0.97021164924477477,"cv":0.11374807543312133}},{"grid_wave_multiplier":2,"config":{"grid":{"x":4096,"y":1,"z":1},"block":{"x":128,"y":1,"z":1},"shared_mem":0,"device_id":0},"h2d_stats":{"mean_ms":0.32614719967047373,"median_ms":0.32268799841403961,"p95_ms":0.35307839810848235,"ci95_low":0.31810731147476878,"ci95_high":0.33418708786617868,"cv":0.068887577309782747},"kernel_stats":{"mean_ms":0.059592533235748611,"median_ms":0.047343999147415161,"p95_ms":0.10433920063078403,"ci95_low":0.051415395221175234,"ci95_high":0.067769671250321989,"cv":0.38345467460651772},"d2h_stats":{"mean_ms":0.45744533240795138,"median_ms":0.45744000375270844,"p95_ms":0.48657920509576791,"ci95_low":0.45092008652701093,"ci95_high":0.46397057828889182,"cv":0.039862289289964041},"total_stats":{"mean_ms":0.88348692456881206,"median_ms":0.8710399866104126,"p95_ms":0.99067676961421935,"ci95_low":0.86540343071295323,"ci95_high":0.90157041842467089,"cv":0.057198780889492151}},{"grid_wave_multiplier":1,"config":{"grid":{"x":1024,"y":1,"z":1},"block":{"x":256,"y":1,"z":1},"shared_mem":0,"device_id":0},"h2d_stats":{"mean_ms":0.69774080018202467,"median_ms":0.89535999298095703,"p95_ms":1.1872111856937404,"ci95_low":0.56888810669771506,"ci95_high":0.82659349366633428,"cv":0.51606444450200784},"kernel_stats":{"mean_ms":0.47205013285080594,"median_ms":0.47363199293613434,"p95_ms":1.2937407910823819,"ci95_low":0.30950101816525433,"ci95_high":0.63459924753635755,"cv":0.96227907108615562},"d2h_stats":{"mean_ms":0.70577812989552813,"median_ms":0.66760000586509705,"p95_ms":1.0595231950283048,"ci95_low":0.61304859076485085,"ci95_high":0.7985076690262054,"cv":0.36715923869764178},"total_stats":{"mean_ms":2.0766719917456311,"median_ms":2.1899199485778809,"p95_ms":3.8587967872619622,"ci95_low":1.6610993404002148,"ci95_high":2.4922446430910474,"cv":0.55922117737490495}},{"grid_wave_multiplier":2,"config":{"grid":{"x":2048,"y":1,"z":1},"block":{"x":256,"y":1,"z":1},"shared_mem":0,"device_id":0},"h2d_stats":{"mean_ms":0.69064747095108037,"median_ms":0.62646400928497314,"p95_ms":1.0952672004699702,"ci95_low":0.62338628586446498,"ci95_high":0.75790865603769575,"cv":0.27215269866169473},"kernel_stats":{"mean_ms":0.66803093155225113,"median_ms":0.41435199975967407,"p95_ms":1.3996400356292724,"ci95_low":0.42129624401519739,"ci95_high":0.91476561908930487,"cv":1.0321390126888064},"d2h_stats":{"mean_ms":0.66355412999788921,"median_ms":0.64233598113059998,"p95_ms":0.93221280574798493,"ci95_low":0.61430703519222529,"ci95_high":0.71280122480355312,"cv":0.20740003006837904},"total_stats":{"mean_ms":2.1763253490130108,"median_ms":1.7659359574317932,"p95_ms":3.3542656183242787,"ci95_low":1.8224631589616953,"ci95_high":2.5301875390643263,"cv":0.45437548989514465}}]}},{"kernel_name":"demo_saxpy_negative_alpha_f32","device_id":0,"passed":true,"benchmark_enabled":true,"autotune_enabled":true,"diagnose_enabled":false,"correctness":{"enabled":true,"passed":true},"benchmark":{"sample_count":30,"h2d_stats":{"mean_ms":0.65695893963177998,"median_ms":0.61860799789428711,"p95_ms":0.98267683386802651,"ci95_low":0.61210278840235033,"ci95_high":0.70181509086120963,"cv":0.19080437853599938},"kernel_stats":{"mean_ms":0.58136640501519044,"median_ms":0.60681602358818054,"p95_ms":1.1240271985530847,"ci95_low":0.47082493223912053,"ci95_high":0.6919078777912604,"cv":0.53134900371544724},"d2h_stats":{"mean_ms":0.6934026678403219,"median_ms":0.69059199094772339,"p95_ms":0.74843200445175173,"ci95_low":0.65546703707353826,"ci95_high":0.73133829860710553,"cv":0.15288552092336766},"total_stats":{"mean_ms":2.0332629362742107,"median_ms":1.9417439699172974,"p95_ms":2.7923232078552243,"ci95_low":1.8574396548080085,"ci95_high":2.2090862177404129,"cv":0.24165033031677816}},"autotune":{"candidate_count":6,"best":{"grid":{"x":2048,"y":1,"z":1},"block":{"x":128,"y":1,"z":1},"shared_mem":0,"device_id":0},"stats":{"mean_ms":0.68285546998182933,"median_ms":0.64399999380111694,"p95_ms":1.4138144075870511,"ci95_low":0.55699715968166819,"ci95_high":0.80871378028199048,"cv":0.51505980633985882},"reason":"Selected block=128, grid=2048 with kernel median_ms=0.644 because it had the lowest median_ms.","all_candidates":[{"grid_wave_multiplier":1,"config":{"grid":{"x":4096,"y":1,"z":1},"block":{"x":64,"y":1,"z":1},"shared_mem":0,"device_id":0},"h2d_stats":{"mean_ms":0.65323947668075566,"median_ms":0.62326401472091675,"p95_ms":0.85500961244106255,"ci95_low":0.60558711435911206,"ci95_high":0.70089183900239926,"cv":0.2038527474296592},"kernel_stats":{"mean_ms":0.74036906858285267,"median_ms":0.73289600014686584,"p95_ms":1.1557759881019585,"ci95_low":0.66044501121655386,"ci95_high":0.82029312594915149,"cv":0.30167117337134491},"d2h_stats":{"mean_ms":0.68041706085205078,"median_ms":0.66302397847175598,"p95_ms":0.76215680837631217,"ci95_low":0.64811489750760454,"ci95_high":0.71271922419649703,"cv":0.13266640791420761},"total_stats":{"mean_ms":2.185154139995575,"median_ms":2.1114881038665771,"p95_ms":2.8670575618743896,"ci95_low":2.0591982900022874,"ci95_high":2.3111099899888625,"cv":0.16107970354784792}},{"grid_wave_multiplier":2,"config":{"grid":{"x":8192,"y":1,"z":1},"block":{"x":64,"y":1,"z":1},"shared_mem":0,"device_id":0},"h2d_stats":{"mean_ms":0.64509760141372685,"median_ms":0.61798399686813354,"p95_ms":0.75118401646614064,"ci95_low":0.6178529699660249,"ci95_high":0.6723422328614288,"cv":0.11802121091253075},"kernel_stats":{"mean_ms":0.73550399442513781,"median_ms":0.71438398957252502,"p95_ms":1.2393728137016295,"ci95_low":0.64631820055726941,"ci95_high":0.82468978829300621,"cv":0.33885601782473584},"d2h_stats":{"mean_ms":0.67907520333925886,"median_ms":0.67680001258850098,"p95_ms":0.75538398921489713,"ci95_low":0.64978654175915207,"ci95_high":0.70836386491936565,"cv":0.12052751697045966},"total_stats":{"mean_ms":2.1864458481470743,"median_ms":2.1552159786224365,"p95_ms":2.6514768362045285,"ci95_low":2.0784621344104388,"ci95_high":2.2944295618837098,"cv":0.1380143008998633}},{"grid_wave_multiplier":1,"config":{"grid":{"x":2048,"y":1,"z":1},"block":{"x":128,"y":1,"z":1},"shared_mem":0,"device_id":0},"h2d_stats":{"mean_ms":0.62274240056673691,"median_ms":0.6223360002040863,"p95_ms":0.68710238933563228,"ci95_low":0.60623701209989023,"ci95_high":0.63924778903358359,"cv":0.074066508040542725},"kernel_stats":{"mean_ms":0.68285546998182933,"median_ms":0.64399999380111694,"p95_ms":1.4138144075870511,"ci95_low":0.55699715968166819,"ci95_high":0.80871378028199048,"cv":0.51505980633985882},"d2h_stats":{"mean_ms":0.70490773121515915,"median_ms":0.6483519971370697,"p95_ms":0.82258560359477984,"ci95_low":0.62016902784698091,"ci95_high":0.78964643458333739,"cv":0.33593410471768337},"total_stats":{"mean_ms":2.1066186587015787,"median_ms":2.0790399312973022,"p95_ms":2.9397855997085571,"ci95_low":1.9398017136868457,"ci95_high":2.2734356037163117,"cv":0.22128847355195727}},{"grid_wave_multiplier":2,"config":{"grid":{"x":4096,"y":1,"z":1},"block":{"x":128,"y":1,"z":1},"shared_mem":0,"device_id":0},"h2d_stats":{"mean_ms":0.65417600472768145,"median_ms":0.63371202349662781,"p95_ms":0.90069280564784959,"ci95_low":0.6137835675181329,"ci95_high":0.69456844193723,"cv":0.1725480296726718},"kernel_stats":{"mean_ms":0.73396266599496207,"median_ms":0.77478399872779846,"p95_ms":0.92769759595394097,"ci95_low":0.6508977670187488,"ci95_high":0.81702756497117535,"cv":0.31626281174033471},"d2h_stats":{"mean_ms":0.66195412675539655,"median_ms":0.64271998405456543,"p95_ms":0.78237917423248282,"ci95_low":0.63964697675375903,"ci95_high":0.68426127675703408,"cv":0.094171773557630803},"total_stats":{"mean_ms":2.1341120203336081,"median_ms":2.1403040885925293,"p95_ms":2.4364480018615717,"ci95_low":2.0389486479504337,"ci95_high":2.2292753927167825,"cv":0.1246112257815072}},{"grid_wave_multiplier":1,"config":{"grid":{"x":1024,"y":1,"z":1},"block":{"x":256,"y":1,"z":1},"shared_mem":0,"device_id":0},"h2d_stats":{"mean_ms":0.6203253348668416,"median_ms":0.61857602000236511,"p95_ms":0.68416961431503287,"ci95_low":0.60418992240039771,"ci95_high":0.6364607473332855,"cv":0.072688399939285858},"kernel_stats":{"mean_ms":0.80928107102711999,"median_ms":0.77775999903678894,"p95_ms":1.2748463988304135,"ci95_low":0.73874535665197494,"ci95_high":0.87981678540226504,"cv":0.24356464213842813},"d2h_stats":{"mean_ms":0.68220586776733394,"median_ms":0.69726401567459106,"p95_ms":0.79870878756046271,"ci95_low":0.64744917579418104,"ci95_high":0.71696255974048684,"cv":0.14237296858684637},"total_stats":{"mean_ms":2.2649866580963134,"median_ms":2.1630240678787231,"p95_ms":2.9579695463180533,"ci95_low":2.1310463787524894,"ci95_high":2.3989269374401374,"cv":0.16525328759443014}},{"grid_wave_multiplier":2,"config":{"grid":{"x":2048,"y":1,"z":1},"block":{"x":256,"y":1,"z":1},"shared_mem":0,"device_id":0},"h2d_stats":{"mean_ms":0.9828309297561646,"median_ms":0.95111998915672302,"p95_ms":1.3934560358524317,"ci95_low":0.88314766633442221,"ci95_high":1.082514193177907,"cv":0.28343141708172631},"kernel_stats":{"mean_ms":1.2473898549874625,"median_ms":1.0290560126304626,"p95_ms":2.8743391990661591,"ci95_low":0.9552325971402047,"ci95_high":1.5395471128347202,"cv":0.65451413189391006},"d2h_stats":{"mean_ms":0.83435733715693161,"median_ms":0.78267201781272888,"p95_ms":1.1351136267185209,"ci95_low":0.77531446790323144,"ci95_high":0.89340020641063178,"cv":0.19775156126037913},"total_stats":{"mean_ms":3.4063679933547975,"median_ms":3.1585279703140259,"p95_ms":5.8337903738021843,"ci95_low":2.9749371170250747,"ci95_high":3.8377988696845202,"cv":0.35393557402590026}}]}}]}</script></main></body></html>
