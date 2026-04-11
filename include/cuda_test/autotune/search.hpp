@@ -158,11 +158,11 @@ inline std::optional<std::size_t> find_runner_up_index(const std::vector<Candida
 inline std::string build_selection_reason(const CandidateRecord& winner,
                                           const CandidateRecord* runner_up) {
     std::ostringstream stream;
-    stream << "Выбрана конфигурация: блок=" << winner.config.block.x << ", сетка=" << winner.config.grid.x
-           << ", медиана ядра=" << winner.benchmark.kernel_stats.median_ms;
+    stream << "Selected launch config: block=" << winner.config.block.x << ", grid=" << winner.config.grid.x
+           << ", kernel median_ms=" << winner.benchmark.kernel_stats.median_ms;
 
     if (runner_up == nullptr) {
-        stream << " как единственный валидный кандидат.";
+        stream << " as the only valid candidate.";
         return stream.str();
     }
 
@@ -170,13 +170,13 @@ inline std::string build_selection_reason(const CandidateRecord& winner,
     const core::RunStats& runner_up_stats = runner_up->benchmark.kernel_stats;
 
     if (winner_stats.median_ms < runner_up_stats.median_ms) {
-        stream << " потому что у нее минимальная медиана ядра.";
+        stream << " because it has the lowest median_ms.";
     } else if (winner_stats.p95_ms < runner_up_stats.p95_ms) {
-        stream << " потому что при одинаковой медиане у нее ниже P95.";
+        stream << " because it wins the median_ms tie with lower p95_ms.";
     } else if (winner_stats.cv < runner_up_stats.cv) {
-        stream << " потому что при одинаковых медиане и P95 у нее ниже коэффициент вариации.";
+        stream << " because it wins the median_ms and p95_ms tie with lower cv.";
     } else {
-        stream << " после точной ничьей с ближайшим конкурентом.";
+        stream << " after an exact tie with the closest runner-up.";
     }
 
     return stream.str();
