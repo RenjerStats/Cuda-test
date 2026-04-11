@@ -237,6 +237,7 @@ TEST_F(PipelineCudaTest, SuiteAppliesConfiguredStagesToAllDescriptors) {
             .device(selected_device_id())
             .correctness()
             .benchmark(benchmark_config)
+            .diagnose()
             .add(make_vector_add_descriptor("suite_first", 2048))
             .add(make_vector_add_descriptor("suite_second", 2048))
             .run_all();
@@ -249,6 +250,7 @@ TEST_F(PipelineCudaTest, SuiteAppliesConfiguredStagesToAllDescriptors) {
         EXPECT_TRUE(item.correctness_passed());
         EXPECT_TRUE(item.benchmark_enabled());
         EXPECT_TRUE(item.benchmark_result().has_value());
+        EXPECT_TRUE(item.diagnose_enabled());
     }
 }
 

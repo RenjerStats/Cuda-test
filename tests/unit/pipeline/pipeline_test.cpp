@@ -157,6 +157,23 @@ TEST(PipelineSuiteTest, EmptySuiteReturnsSuccessAndEmitsNoFiles) {
     EXPECT_TRUE(std::filesystem::is_empty(csv_dir.path()));
 }
 
+TEST(PipelineSuiteTest, SuitePropagatesDiagnoseStageToEachReport) {
+    const SuiteReport report = make_suite("diagnose_suite")
+                                   .device(1)
+                                   .diagnose()
+                                   .add(make_no_stage_descriptor("diag_first"))
+                                   .add(make_no_stage_descriptor("diag_second"))
+                                   .run_all();
+
+    ASSERT_EQ(report.reports().size(), 2U);
+    for (const PipelineReport& item : report.reports()) {
+        EXPECT_TRUE(item.diagnose_enabled());
+        EXPECT_FALSE(item.fingerprint().has_value());
+        EXPECT_TRUE(item.recommendations().empty());
+        EXPECT_TRUE(item.passed());
+    }
+}
+
 TEST(PipelineSuiteTest, SuiteWritesOneFilePerKernelForNoStageReports) {
     ScopedTempDir json_dir("cuda_test_pipeline_unit_suite_json");
     ScopedTempDir csv_dir("cuda_test_pipeline_unit_suite_csv");

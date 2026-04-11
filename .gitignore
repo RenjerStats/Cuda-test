@@ -7,10 +7,13 @@
 # CMake and tool caches
 /CMakeUserPresets.json
 /.cache/
+/.mcp.json
 
 # IDEs
 /.vs/
 /.idea/
+/.claude/
+/.vscode/
 *.VC.db
 *.VC.opendb
 *.suo
@@ -52,3 +55,13 @@ reports/raw/*
 
 # Symlinked compile database
 /compile_commands.json
+
+# Internal workflow files not meant for the public repository
+/AGENTS.md
+/CLAUDE.md
+/agents/
+/docs/
+/plan/
+/report_for_conference/
+/skills/
+/workitems/

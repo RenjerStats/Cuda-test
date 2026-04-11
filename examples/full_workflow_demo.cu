@@ -63,13 +63,13 @@ cuda_test::KernelDescriptor make_saxpy_descriptor(std::string name,
     return cuda_test::describe_kernel(std::move(name))
         .problem_size(size)
         .inputs([size]() {
-            // The descriptor owns the host-side fixtures.
-            // Each validate()/measure() call gets a fresh copy, which keeps the run deterministic
-            // and makes correctness/benchmark/autotune independent from each other.
+            // Descriptor владеет набором входных данных на стороне хоста.
+            // Каждый вызов validate()/measure() получает свежую копию, что делает прогоны детерминированными
+            // и отделяет проверку, бенчмарк и автотюнинг друг от друга.
             return std::make_tuple(make_x_values(size), make_y_values(size));
         })
         .expected([size, alpha]() {
-            // This is the CPU ground truth that correctness() compares against.
+            // Это CPU-эталон, с которым correctness() сравнивает результат ядра.
             return make_expected_values(size, alpha);
         })
         .tolerance(1e-5)
@@ -79,8 +79,8 @@ cuda_test::KernelDescriptor make_saxpy_descriptor(std::string name,
             auto& x_device = std::get<0>(device_inputs);
             auto& y_device = std::get<1>(device_inputs);
 
-            // The library decides grid/block/shared_mem/device_id for every run.
-            // The launch callback is intentionally small: take those parameters and invoke the kernel.
+            // Библиотека сама выбирает сетку, блок, разделяемую память и устройство для каждого прогона.
+            // Launch-callback специально минимален: он получает параметры и просто вызывает ядро.
             saxpy_kernel<<<config.grid, config.block, config.shared_mem>>>(
                 x_device.data(),
                 y_device.data(),
@@ -101,63 +101,76 @@ void print_heading(const std::string& title) {
 
 std::string format_ms(double value) {
     std::ostringstream stream;
-    stream << std::fixed << std::setprecision(4) << value << " ms";
+    stream << std::fixed << std::setprecision(5) << value << " ms";
     return stream.str();
+}
+
+std::string format_ratio(double value, int precision = 3) {
+    std::ostringstream stream;
+    stream << std::fixed << std::setprecision(precision) << value;
+    return stream.str();
+}
+
+std::string format_optional_ratio(double value, bool available, int precision = 3) {
+    return available ? format_ratio(value, precision) : "н/д";
 }
 
 void print_recommendations(const cuda_test::PipelineReport& report) {
     if (!report.diagnose_enabled()) {
-        std::cout << "Diagnostics were not enabled.\n";
+        std::cout << "Диагностика не была включена.\n";
         return;
     }
 
     if (report.recommendations().empty()) {
-        std::cout << "No recommendations generated.\n";
+        std::cout << "Рекомендации не сгенерированы.\n";
         return;
     }
 
     for (const auto& recommendation : report.recommendations()) {
         std::cout << "- [" << recommendation.severity << "] " << recommendation.tag << '\n'
-                  << "  summary    : " << recommendation.summary << '\n'
-                  << "  suggestion : " << recommendation.suggestion << '\n';
+                  << "  суть        : " << recommendation.summary << '\n'
+                  << "  совет       : " << recommendation.suggestion << '\n';
     }
 }
 
 void print_pipeline_summary(const cuda_test::PipelineReport& report) {
-    print_heading("Pipeline Summary");
-    std::cout << "kernel              : " << report.kernel_name() << '\n'
-              << "device_id           : " << report.device_id() << '\n'
-              << "correctness enabled : " << (report.correctness_enabled() ? "yes" : "no") << '\n'
-              << "correctness passed  : " << (report.correctness_passed() ? "yes" : "no") << '\n'
-              << "pipeline passed     : " << (report.passed() ? "yes" : "no") << '\n';
+    print_heading("Сводка по пайплайну");
+    std::cout << "ядро                : " << report.kernel_name() << '\n'
+              << "идентификатор GPU   : " << report.device_id() << '\n'
+              << "проверка включена   : " << (report.correctness_enabled() ? "да" : "нет") << '\n'
+              << "проверка пройдена   : " << (report.correctness_passed() ? "да" : "нет") << '\n'
+              << "пайплайн пройден    : " << (report.passed() ? "да" : "нет") << '\n';
 
     if (report.benchmark_result().has_value()) {
-        std::cout << "benchmark median    : "
+        std::cout << "медиана баз. замера : "
                   << format_ms(report.benchmark_result()->kernel_stats.median_ms) << '\n'
-                  << "benchmark p95       : "
+                  << "P95 баз. замера     : "
                   << format_ms(report.benchmark_result()->kernel_stats.p95_ms) << '\n'
-                  << "benchmark cv        : "
+                  << "КВ баз. замера      : "
                   << std::fixed << std::setprecision(4)
                   << report.benchmark_result()->kernel_stats.cv << '\n';
     }
 
     if (report.autotune_result().has_value()) {
         const auto& best = report.autotune_result()->best;
-        std::cout << "best autotune block : " << best.block.x << '\n'
-                  << "best autotune grid  : " << best.grid.x << '\n'
-                  << "autotune median     : "
+        std::cout << "лучший блок         : " << best.block.x << '\n'
+                  << "лучшая сетка        : " << best.grid.x << '\n'
+                  << "медиана тюнинга     : "
                   << format_ms(report.autotune_result()->stats.median_ms) << '\n'
-                  << "selection reason    : " << report.autotune_result()->reason << '\n';
+                  << "пояснение выбора    : " << report.autotune_result()->reason << '\n';
     }
 
     if (report.fingerprint().has_value()) {
         const auto& fingerprint = *report.fingerprint();
-        std::cout << "occupancy           : " << std::fixed << std::setprecision(3)
-                  << fingerprint.occupancy << '\n'
-                  << "bandwidth util      : " << fingerprint.bandwidth_utilization << '\n'
-                  << "transfer/compute    : " << fingerprint.transfer_compute_ratio << '\n'
-                  << "block sensitivity   : " << fingerprint.block_sensitivity << '\n'
-                  << "recommendations     : " << report.recommendations().size() << '\n';
+        std::cout << "заполняемость       : "
+                  << format_optional_ratio(fingerprint.occupancy, fingerprint.has_occupancy) << '\n'
+                  << "util. проп. спос.   : "
+                  << format_optional_ratio(
+                         fingerprint.bandwidth_utilization, fingerprint.has_bandwidth_utilization)
+                  << '\n'
+                  << "передачи/вычисл.    : " << format_ratio(fingerprint.transfer_compute_ratio) << '\n'
+                  << "чувств. к блоку     : " << format_ratio(fingerprint.block_sensitivity) << '\n'
+                  << "рекомендаций        : " << report.recommendations().size() << '\n';
     }
 }
 
@@ -165,30 +178,31 @@ void write_demo_readme(const std::filesystem::path& root,
                        const cuda_test::PipelineReport& report,
                        const cuda_test::SuiteReport& suite_report) {
     std::ofstream stream(root / "README.txt", std::ios::binary | std::ios::trunc);
-    stream << "cuda_test full workflow demo\n"
-              "============================\n\n"
-              "This directory was generated by examples/full_workflow_demo.cu.\n\n"
-              "Artifacts\n"
+    stream << "Демонстрация полного рабочего процесса cuda_test\n"
+              "===============================================\n\n"
+              "Этот каталог был сгенерирован примером examples/full_workflow_demo.cu.\n\n"
+              "Артефакты\n"
               "---------\n"
-              "- pipeline/pipeline_report.html : self-contained human-readable report\n"
-              "- pipeline/pipeline_report.json : machine-readable pipeline envelope\n"
-              "- pipeline/pipeline_report.csv  : flat summary for spreadsheets\n"
-              "- pipeline/benchmark.json/.csv  : raw timing statistics\n"
-              "- pipeline/autotune.json/.csv   : all accepted candidates and the winner\n"
-              "- suite/suite_report.html       : one page with multiple kernel sections\n"
-              "- suite/json/*.json             : one JSON file per kernel report\n"
-              "- suite/csv/*.csv               : one CSV file per kernel report\n\n"
-              "Key results\n"
-              "-----------\n"
-           << "pipeline_passed=" << (report.passed() ? "true" : "false") << '\n'
-           << "benchmark_median_ms="
+              "- pipeline/pipeline_report.html : самостоятельный человекочитаемый отчет\n"
+              "- pipeline/pipeline_report.json : машиночитаемый отчет по одному пайплайну\n"
+              "- pipeline/pipeline_report.csv  : плоская сводка для таблиц\n"
+              "- pipeline/benchmark.json/.csv  : сырая статистика измерений\n"
+              "- pipeline/autotune.json/.csv   : все принятые кандидаты автотюнинга и победитель\n"
+              "- suite/suite_report.html       : одна страница с несколькими разделами по ядрам\n"
+              "- suite/json/*.json             : один JSON-файл на каждый отчет по ядру\n"
+              "- suite/csv/*.csv               : один CSV-файл на каждый отчет по ядру\n\n"
+              "Ключевые результаты\n"
+              "-------------------\n"
+           << "пайплайн_пройден="
+           << (report.passed() ? "да" : "нет") << '\n'
+           << "медиана_базового_замера_мс="
            << (report.benchmark_result().has_value() ? report.benchmark_result()->kernel_stats.median_ms : 0.0)
            << '\n'
-           << "autotune_candidates="
+           << "кандидатов_автотюнинга="
            << (report.autotune_result().has_value() ? report.autotune_result()->all_candidates.size() : 0U)
            << '\n'
-           << "recommendations=" << report.recommendations().size() << '\n'
-           << "suite_reports=" << suite_report.reports().size() << '\n';
+           << "рекомендаций=" << report.recommendations().size() << '\n'
+           << "отчетов_в_наборе=" << suite_report.reports().size() << '\n';
 }
 
 } // namespace
@@ -197,14 +211,14 @@ int main() try {
     const std::filesystem::path output_root = demo_output_root();
     std::filesystem::create_directories(output_root);
 
-    // Step 1. Describe one CUDA kernel in a reusable form.
-    // This object is the center of the developer workflow: it knows how to prepare inputs,
-    // what output is expected, and how to launch the kernel under arbitrary launch configs.
+    // Шаг 1. Описываем одно CUDA-ядро в переиспользуемой форме.
+    // Это центральный объект всего рабочего процесса: он знает, как подготовить входы,
+    // какой результат считается корректным и как запускать ядро под произвольной конфигурацией запуска.
     const cuda_test::KernelDescriptor saxpy_demo =
         make_saxpy_descriptor("demo_saxpy_f32", kLargeProblemSize, kAlphaDefault);
 
-    // Step 2. Build the main pipeline.
-    // This is the "single-kernel deep dive" path: correctness -> benchmark -> autotune -> diagnose.
+    // Шаг 2. Собираем основной пайплайн.
+    // Это путь "глубокого анализа одного ядра": проверка -> бенчмарк -> автотюнинг -> диагностика.
     cuda_test::Pipeline pipeline = cuda_test::make_pipeline(saxpy_demo);
     pipeline.device(0)
         .correctness()
@@ -214,25 +228,25 @@ int main() try {
 
     const cuda_test::PipelineReport pipeline_report = pipeline.run();
     if (!pipeline_report.passed()) {
-        std::cerr << "Pipeline failed correctness; demo stops before export.\n";
+        std::cerr << "Pipeline не прошел проверку корректности; демонстрация останавливается до экспорта.\n";
         return 1;
     }
 
-    print_heading("What This Demo Covers");
+    print_heading("Что показывает это демо");
     std::cout
-        << "1. describe_kernel(): model one CUDA kernel with reusable host fixtures\n"
-        << "2. make_pipeline(): run correctness, benchmark, autotune, diagnostics\n"
-        << "3. export_json/csv/html(): persist artifacts for humans and tooling\n"
-        << "4. make_suite(): batch multiple descriptors into one higher-level report\n";
+        << "1. describe_kernel(): описывает CUDA-ядро с переиспользуемым набором входов\n"
+        << "2. make_pipeline(): выполняет проверку, бенчмарк, автотюнинг и диагностику\n"
+        << "3. export_json/csv/html(): сохраняет артефакты для людей и инструментов\n"
+        << "4. make_suite(): объединяет несколько дескрипторов в один сводный отчет\n";
 
     print_pipeline_summary(pipeline_report);
 
-    print_heading("Diagnostics Recommendations");
+    print_heading("Рекомендации диагностики");
     print_recommendations(pipeline_report);
 
-    // Step 3. Export every artifact a developer would normally inspect.
-    // The pipeline report gives the stitched high-level view.
-    // Raw benchmark/autotune exports let you drill into the underlying measurements.
+    // Шаг 3. Экспортируем все артефакты, которые разработчик обычно смотрит руками.
+    // Отчет по пайплайну дает цельную верхнеуровневую картину.
+    // Сырые выгрузки бенчмарка и автотюнинга позволяют провалиться в исходные измерения.
     const std::filesystem::path pipeline_dir = output_root / "pipeline";
     std::filesystem::create_directories(pipeline_dir);
 
@@ -254,9 +268,11 @@ int main() try {
             pipeline_dir / "autotune.csv", *pipeline_report.autotune_result());
     }
 
-    // Step 4. Show the "scale out" workflow.
-    // A suite is what a developer would use when one kernel-level workflow works
-    // and they want the same treatment for a family of kernels or problem variants.
+    // Шаг 4. Показываем путь "масштабирования".
+    // Suite нужен тогда, когда рабочий процесс для одного ядра уже работает,
+    // и тот же подход нужно применить к семейству ядер или вариантам одной задачи.
+    // Теперь он повторяет и этап диагностики, поэтому сводный HTML-отчет показывает
+    // не только времена, но и рекомендации по каждому варианту.
     const cuda_test::KernelDescriptor small_variant =
         make_saxpy_descriptor("demo_saxpy_small_f32", kSmallProblemSize, kAlphaDefault);
     const cuda_test::KernelDescriptor alt_variant =
@@ -267,6 +283,7 @@ int main() try {
         .correctness()
         .benchmark(cuda_test::benchmark::BenchmarkConfig{5, 30})
         .autotune(std::vector<int>{64, 128, 256}, std::vector<int>{1, 2})
+        .diagnose()
         .add(small_variant)
         .add(alt_variant);
 
@@ -279,7 +296,7 @@ int main() try {
 
     write_demo_readme(output_root, pipeline_report, suite_report);
 
-    print_heading("Generated Artifacts");
+    print_heading("Сгенерированные артефакты");
     std::cout << "- " << (pipeline_dir / "pipeline_report.html").string() << '\n'
               << "- " << (pipeline_dir / "pipeline_report.json").string() << '\n'
               << "- " << (pipeline_dir / "pipeline_report.csv").string() << '\n'
@@ -292,15 +309,15 @@ int main() try {
               << "- " << (suite_dir / "csv").string() << '\n'
               << "- " << (output_root / "README.txt").string() << '\n';
 
-    print_heading("How To Read The Output");
+    print_heading("Как читать результаты");
     std::cout
-        << "- Start with pipeline_report.html for the narrative, charts, and recommendations.\n"
-        << "- Use pipeline_report.json when you want a stable machine-readable envelope.\n"
-        << "- Use benchmark/autotune CSV files when you want quick spreadsheet inspection.\n"
-        << "- Use suite_report.html after you scale from one kernel to several related descriptors.\n";
+        << "- Начинайте с pipeline_report.html: там есть поясняющий текст, графики и рекомендации.\n"
+        << "- Используйте pipeline_report.json, когда нужен стабильный машиночитаемый формат.\n"
+        << "- Используйте CSV бенчмарка и автотюнинга, когда нужен быстрый просмотр в таблице.\n"
+        << "- Используйте suite_report.html, когда переходите от одного ядра к нескольким связанным дескрипторам.\n";
 
     return 0;
 } catch (const std::exception& error) {
-    std::cerr << "Demo failed: " << error.what() << '\n';
+    std::cerr << "Ошибка демо: " << error.what() << '\n';
     return 1;
 }

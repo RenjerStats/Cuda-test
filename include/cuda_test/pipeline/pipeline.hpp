@@ -69,7 +69,7 @@ inline std::optional<analysis::KernelFingerprint> build_diagnostics_fingerprint(
     }
 
     return analysis::build_fingerprint(
-        breakdown, timing_result->kernel_stats, {}, {}, {}, block_sensitivity_value, 0.0);
+        breakdown, timing_result->kernel_stats, std::nullopt, std::nullopt, std::nullopt, block_sensitivity_value);
 }
 
 } // namespace detail

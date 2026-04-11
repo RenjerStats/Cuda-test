@@ -47,6 +47,11 @@ public:
         return autotune(std::move(spec));
     }
 
+    Suite& diagnose() {
+        diagnose_enabled_ = true;
+        return *this;
+    }
+
     Suite& add(KernelDescriptor descriptor) {
         const std::string& name = descriptor.name();
         const std::string sanitized_name = detail::sanitize_file_component(name);
@@ -84,6 +89,9 @@ public:
             if (autotune_spec_.has_value()) {
                 pipeline_run.autotune(*autotune_spec_);
             }
+            if (diagnose_enabled_) {
+                pipeline_run.diagnose();
+            }
 
             report.reports_.push_back(pipeline_run.run());
         }
@@ -97,6 +105,7 @@ private:
     bool correctness_enabled_ = false;
     std::optional<benchmark::BenchmarkConfig> benchmark_config_{};
     std::optional<autotune::AutoTuneSpec> autotune_spec_{};
+    bool diagnose_enabled_ = false;
     std::vector<KernelDescriptor> descriptors_;
 };
 

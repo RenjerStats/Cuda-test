@@ -12,11 +12,15 @@ KernelFingerprint make_healthy_fingerprint() {
     KernelFingerprint fingerprint;
     fingerprint.transfer_compute_ratio = 0.5;
     fingerprint.occupancy = 0.8;
+    fingerprint.has_occupancy = true;
     fingerprint.bandwidth_utilization = 0.3;
+    fingerprint.has_bandwidth_utilization = true;
     fingerprint.cv = 0.05;
     fingerprint.block_sensitivity = 1.1;
     fingerprint.scaling_exponent = 1.0;
+    fingerprint.has_scaling_exponent = true;
     fingerprint.num_regs = 16;
+    fingerprint.has_kernel_attributes = true;
     return fingerprint;
 }
 

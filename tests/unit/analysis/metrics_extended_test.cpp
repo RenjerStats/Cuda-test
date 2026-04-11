@@ -112,13 +112,17 @@ TEST(KernelFingerprintTest, BuildsFromAvailableMetrics) {
 
     EXPECT_DOUBLE_EQ(fingerprint.transfer_compute_ratio, 0.75);
     EXPECT_DOUBLE_EQ(fingerprint.occupancy, 0.75);
+    EXPECT_TRUE(fingerprint.has_occupancy);
     EXPECT_DOUBLE_EQ(fingerprint.bandwidth_utilization, 0.5);
+    EXPECT_TRUE(fingerprint.has_bandwidth_utilization);
     EXPECT_DOUBLE_EQ(fingerprint.cv, 0.1);
     EXPECT_DOUBLE_EQ(fingerprint.block_sensitivity, 1.4);
     EXPECT_DOUBLE_EQ(fingerprint.scaling_exponent, 1.1);
+    EXPECT_TRUE(fingerprint.has_scaling_exponent);
     EXPECT_EQ(fingerprint.num_regs, 32);
     EXPECT_EQ(fingerprint.local_size_bytes, 16U);
     EXPECT_EQ(fingerprint.shared_size_bytes, 64U);
+    EXPECT_TRUE(fingerprint.has_kernel_attributes);
 }
 
 } // namespace

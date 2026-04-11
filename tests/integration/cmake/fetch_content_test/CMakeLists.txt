@@ -5,8 +5,12 @@ project(cuda_test_fetch_content_consumer LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(NOT DEFINED CUDA_TEST_SOURCE_DIR)
-  message(FATAL_ERROR "CUDA_TEST_SOURCE_DIR must point to the cuda_test source tree")
+if(NOT DEFINED CUDA_TEST_GIT_REPOSITORY)
+  message(FATAL_ERROR "CUDA_TEST_GIT_REPOSITORY must point to the cuda_test git repository")
+endif()
+
+if(NOT DEFINED CUDA_TEST_GIT_TAG)
+  message(FATAL_ERROR "CUDA_TEST_GIT_TAG must identify the revision to fetch")
 endif()
 
 include(FetchContent)
@@ -18,7 +22,8 @@ set(CUDA_TEST_ENABLE_CUDA OFF CACHE BOOL "" FORCE)
 
 FetchContent_Declare(
   cuda_test
-  SOURCE_DIR "${CUDA_TEST_SOURCE_DIR}"
+  GIT_REPOSITORY "${CUDA_TEST_GIT_REPOSITORY}"
+  GIT_TAG "${CUDA_TEST_GIT_TAG}"
 )
 FetchContent_MakeAvailable(cuda_test)
 

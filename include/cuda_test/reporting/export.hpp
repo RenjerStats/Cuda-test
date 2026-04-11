@@ -69,6 +69,27 @@ inline void write_blank_csv_cell(std::ostream& stream) {
     stream << ',';
 }
 
+inline void write_optional_double_csv(std::ostream& stream, double value, bool available) {
+    stream << ',';
+    if (available) {
+        stream << format_double(value);
+    }
+}
+
+inline void write_optional_int_csv(std::ostream& stream, int value, bool available) {
+    stream << ',';
+    if (available) {
+        stream << value;
+    }
+}
+
+inline void write_optional_size_csv(std::ostream& stream, std::size_t value, bool available) {
+    stream << ',';
+    if (available) {
+        stream << value;
+    }
+}
+
 inline std::string join_recommendation_tags(const std::vector<analysis::Recommendation>& recommendations) {
     std::string joined;
 
@@ -244,13 +265,19 @@ inline void export_csv(const std::filesystem::path& path, const pipeline::Pipeli
 
     if (report.fingerprint().has_value()) {
         const analysis::KernelFingerprint& fingerprint = *report.fingerprint();
-        stream << ',' << detail::format_double(fingerprint.transfer_compute_ratio) << ','
-               << detail::format_double(fingerprint.occupancy) << ','
-               << detail::format_double(fingerprint.bandwidth_utilization) << ','
-               << detail::format_double(fingerprint.cv) << ','
-               << detail::format_double(fingerprint.block_sensitivity) << ','
-               << detail::format_double(fingerprint.scaling_exponent) << ',' << fingerprint.num_regs << ','
-               << fingerprint.local_size_bytes << ',' << fingerprint.shared_size_bytes;
+        stream << ',' << detail::format_double(fingerprint.transfer_compute_ratio);
+        detail::write_optional_double_csv(stream, fingerprint.occupancy, fingerprint.has_occupancy);
+        detail::write_optional_double_csv(
+            stream, fingerprint.bandwidth_utilization, fingerprint.has_bandwidth_utilization);
+        stream << ',' << detail::format_double(fingerprint.cv) << ','
+               << detail::format_double(fingerprint.block_sensitivity);
+        detail::write_optional_double_csv(
+            stream, fingerprint.scaling_exponent, fingerprint.has_scaling_exponent);
+        detail::write_optional_int_csv(stream, fingerprint.num_regs, fingerprint.has_kernel_attributes);
+        detail::write_optional_size_csv(
+            stream, fingerprint.local_size_bytes, fingerprint.has_kernel_attributes);
+        detail::write_optional_size_csv(
+            stream, fingerprint.shared_size_bytes, fingerprint.has_kernel_attributes);
     } else {
         for (int index = 0; index < 9; ++index) {
             detail::write_blank_csv_cell(stream);

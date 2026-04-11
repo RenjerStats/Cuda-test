@@ -1,9 +1,9 @@
 include_guard(GLOBAL)
 
 option(CUDA_TEST_ENABLE_CUDA "Enable CUDA language and toolkit integration." OFF)
-option(CUDA_TEST_BUILD_TESTS "Build unit and integration test targets." ON)
-option(CUDA_TEST_BUILD_BENCHMARKS "Build benchmark targets." ON)
-option(CUDA_TEST_BUILD_EXAMPLES "Build example targets." ON)
+option(CUDA_TEST_BUILD_TESTS "Build unit and integration test targets." OFF)
+option(CUDA_TEST_BUILD_BENCHMARKS "Build benchmark targets." OFF)
+option(CUDA_TEST_BUILD_EXAMPLES "Build example targets." OFF)
 option(CUDA_TEST_ENABLE_WARNINGS "Enable default compiler warnings." ON)
 
 set(CUDA_TEST_HAS_CUDA OFF)

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Feature Spec Contract"
-  short_description: "Turn feature ideas into implementation packets."
-  default_prompt: "Use $feature-spec-contract to turn this request into a feature packet and test contract."

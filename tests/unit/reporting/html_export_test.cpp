@@ -74,7 +74,7 @@ autotune::AutoTuneResult make_autotune_result() {
     result.all_candidates.push_back(make_candidate(256U, 2U, 1, 2.2));
     result.best = result.all_candidates[1].config;
     result.stats = result.all_candidates[1].benchmark.kernel_stats;
-    result.reason = "Selected block=128 because it had the lowest median.";
+    result.reason = "Выбрана конфигурация: блок=128, сетка=4, медиана ядра=1.8 потому что у нее минимальная медиана ядра.";
     return result;
 }
 
@@ -82,13 +82,17 @@ analysis::KernelFingerprint make_fingerprint() {
     analysis::KernelFingerprint fingerprint;
     fingerprint.transfer_compute_ratio = 0.4;
     fingerprint.occupancy = 0.68;
+    fingerprint.has_occupancy = true;
     fingerprint.bandwidth_utilization = 0.82;
+    fingerprint.has_bandwidth_utilization = true;
     fingerprint.cv = 0.04;
     fingerprint.block_sensitivity = 1.42;
     fingerprint.scaling_exponent = 1.05;
+    fingerprint.has_scaling_exponent = true;
     fingerprint.num_regs = 48;
     fingerprint.local_size_bytes = 16U;
     fingerprint.shared_size_bytes = 64U;
+    fingerprint.has_kernel_attributes = true;
     return fingerprint;
 }
 
@@ -101,11 +105,11 @@ pipeline::PipelineReport make_full_report(std::string kernel_name = "test_kernel
         .autotune(make_autotune_result())
         .diagnose(true,
                   make_fingerprint(),
-                  {{"unstable_timing", "warning", "Timing variation is high.", "Reduce background GPU work."},
+                  {{"unstable_timing", "warning", "Разброс времени слишком велик.", "Уменьшите фоновую нагрузку на GPU."},
                    {"bandwidth_bound",
                     "info",
-                    "The kernel is bandwidth limited.",
-                    "Improve coalescing and shared memory use."}})
+                    "Ядро упирается в пропускную способность памяти.",
+                    "Улучшите коалесцирование и использование разделяемой памяти."}})
         .build();
 }
 
@@ -158,7 +162,7 @@ std::size_t count_occurrences(const std::string& text, const std::string& needle
 }
 
 std::string normalize_generated_timestamps(std::string text) {
-    const std::string marker = "Generated ";
+    const std::string marker = "Сформировано ";
     const std::string suffix = " | cuda_test v";
     std::size_t search_from = 0U;
 
@@ -192,20 +196,22 @@ TEST(HtmlExportTest, PipelineHtmlExportWritesFullStandaloneDocument) {
 
     const std::string text = read_text(path);
     EXPECT_EQ(text.rfind("<!DOCTYPE html>", 0), 0U);
-    EXPECT_NE(text.find("<title>cuda_test Report: test_kernel</title>"), std::string::npos);
+    EXPECT_NE(text.find("<title>cuda_test Отчет: test_kernel</title>"), std::string::npos);
     EXPECT_NE(text.find(">test_kernel</h1>"), std::string::npos);
-    EXPECT_NE(text.find("Passed"), std::string::npos);
-    EXPECT_NE(text.find("Candidate sweep"), std::string::npos);
+    EXPECT_NE(text.find("Пройден"), std::string::npos);
+    EXPECT_NE(text.find("Перебор кандидатов"), std::string::npos);
     EXPECT_NE(text.find("64x1x1"), std::string::npos);
     EXPECT_NE(text.find("128x1x1"), std::string::npos);
     EXPECT_NE(text.find("winner-row"), std::string::npos);
-    EXPECT_NE(text.find("Stage breakdown"), std::string::npos);
-    EXPECT_NE(text.find("Timing summary"), std::string::npos);
-    EXPECT_NE(text.find("Recommendations"), std::string::npos);
+    EXPECT_NE(text.find("Разбивка по этапам"), std::string::npos);
+    EXPECT_NE(text.find("Сводка по времени"), std::string::npos);
+    EXPECT_NE(text.find("Рекомендации"), std::string::npos);
     EXPECT_NE(text.find("sev-warning"), std::string::npos);
     EXPECT_NE(text.find("sev-info"), std::string::npos);
     EXPECT_NE(text.find("<script type=\"application/json\" id=\"raw-data\">"), std::string::npos);
     EXPECT_NE(text.find("\"kernel_name\":\"test_kernel\""), std::string::npos);
+    EXPECT_NE(text.find("ускорение 1.33333x"), std::string::npos);
+    EXPECT_NE(text.find("1.80000 ms"), std::string::npos);
     EXPECT_NE(text.find("<svg"), std::string::npos);
     EXPECT_EQ(text.find("http://"), std::string::npos);
     EXPECT_EQ(text.find("https://"), std::string::npos);
@@ -217,8 +223,8 @@ TEST(HtmlExportTest, PipelineHtmlExportShowsFailedCorrectnessBadge) {
     export_html(path, make_failed_report());
 
     const std::string text = read_text(path);
-    EXPECT_NE(text.find("Correctness failed"), std::string::npos);
-    EXPECT_NE(text.find(">Failed<"), std::string::npos);
+    EXPECT_NE(text.find("Проверка не пройдена"), std::string::npos);
+    EXPECT_NE(text.find(">Ошибка<"), std::string::npos);
 }
 
 TEST(HtmlExportTest, PipelineHtmlExportEscapesVisibleTextAndScriptSensitiveContent) {
@@ -233,12 +239,12 @@ TEST(HtmlExportTest, PipelineHtmlExportEscapesVisibleTextAndScriptSensitiveConte
                            report.fingerprint(),
                            {{"unstable_timing",
                              "warning",
-                             "Timing variation is high.",
-                             "Avoid </script> in copied snippets."},
+                             "Разброс времени слишком велик.",
+                             "Не вставляйте </script> в копируемые фрагменты."},
                             {"bandwidth_bound",
                              "info",
-                             "The kernel is bandwidth limited.",
-                             "Improve coalescing and shared memory use."}})
+                             "Ядро упирается в пропускную способность памяти.",
+                             "Улучшите коалесцирование и использование разделяемой памяти."}})
                  .build();
     const std::filesystem::path path = make_output_path("pipeline_escaped.html");
 
@@ -246,7 +252,7 @@ TEST(HtmlExportTest, PipelineHtmlExportEscapesVisibleTextAndScriptSensitiveConte
 
     const std::string text = read_text(path);
     EXPECT_NE(text.find("test&lt;/script&gt;&amp;kernel&lt;demo&gt;"), std::string::npos);
-    EXPECT_NE(text.find("Avoid &lt;/script&gt; in copied snippets."), std::string::npos);
+    EXPECT_NE(text.find("Не вставляйте &lt;/script&gt; в копируемые фрагменты."), std::string::npos);
     EXPECT_NE(text.find("\\u003C/script\\u003E"), std::string::npos);
 }
 
@@ -257,9 +263,57 @@ TEST(HtmlExportTest, PipelineHtmlExportHandlesMinimalReport) {
 
     const std::string text = read_text(path);
     EXPECT_EQ(text.rfind("<!DOCTYPE html>", 0), 0U);
-    EXPECT_NE(text.find("No autotune data available for this report."), std::string::npos);
-    EXPECT_NE(text.find("No timing data available for this report."), std::string::npos);
-    EXPECT_NE(text.find("Diagnostics were not run for this pipeline."), std::string::npos);
+    EXPECT_NE(text.find("Для этого отчета нет данных автотюнинга."), std::string::npos);
+    EXPECT_NE(text.find("Для этого отчета нет временных данных."), std::string::npos);
+    EXPECT_NE(text.find("Диагностика для этого пайплайна не запускалась."), std::string::npos);
+}
+
+TEST(HtmlExportTest, PipelineHtmlExportShowsNdForUnavailableRuntimeMetrics) {
+    analysis::KernelFingerprint fingerprint;
+    fingerprint.transfer_compute_ratio = 1.25;
+    fingerprint.cv = 0.08;
+    fingerprint.block_sensitivity = 1.1;
+
+    const pipeline::PipelineReport report = pipeline::detail::PipelineReportBuilder()
+                                                .kernel_name("partial_metrics_kernel")
+                                                .device_id(0)
+                                                .diagnose(true, fingerprint)
+                                                .build();
+    const std::filesystem::path path = make_output_path("pipeline_partial_metrics.html");
+
+    export_html(path, report);
+
+    const std::string text = read_text(path);
+    EXPECT_NE(text.find("теоретическая заполняемость н/д"), std::string::npos);
+    EXPECT_NE(text.find("утилизация пропускной способности н/д"), std::string::npos);
+    EXPECT_NE(text.find("регистры н/д"), std::string::npos);
+    EXPECT_NE(text.find("локальная память н/д"), std::string::npos);
+}
+
+TEST(HtmlExportTest, PipelineHtmlExportShowsSlowdownWhenMedianGapIsLargeDespiteOverlap) {
+    benchmark::BenchmarkResult benchmark_result = make_benchmark_result(0.05);
+    benchmark_result.kernel_stats.ci95_low = 0.01;
+    benchmark_result.kernel_stats.ci95_high = 0.40;
+
+    autotune::AutoTuneResult autotune_result = make_autotune_result();
+    autotune_result.stats = make_stats(0.31, 0.30, 0.45, 0.25, 0.45, 0.20);
+    autotune_result.best = autotune_result.all_candidates[1].config;
+    autotune_result.all_candidates[1].benchmark.kernel_stats = autotune_result.stats;
+
+    const pipeline::PipelineReport report = pipeline::detail::PipelineReportBuilder()
+                                                .kernel_name("large_gap_kernel")
+                                                .device_id(0)
+                                                .correctness(true, true)
+                                                .benchmark(benchmark_result)
+                                                .autotune(autotune_result)
+                                                .build();
+    const std::filesystem::path path = make_output_path("pipeline_large_gap.html");
+
+    export_html(path, report);
+
+    const std::string text = read_text(path);
+    EXPECT_NE(text.find("замедление 6.00000x"), std::string::npos);
+    EXPECT_EQ(text.find("в пределах шума"), std::string::npos);
 }
 
 TEST(HtmlExportTest, PipelineMemberDelegationMatchesDirectExport) {
@@ -283,11 +337,12 @@ TEST(HtmlExportTest, SuiteHtmlExportWritesSummaryAndKernelSections) {
     const std::string text = read_text(path);
     EXPECT_EQ(text.rfind("<!DOCTYPE html>", 0), 0U);
     EXPECT_NE(text.find("suite_alpha"), std::string::npos);
-    EXPECT_NE(text.find("Kernel summary"), std::string::npos);
+    EXPECT_NE(text.find("Сводка по ядрам"), std::string::npos);
     EXPECT_NE(text.find("alpha_kernel"), std::string::npos);
     EXPECT_NE(text.find("beta_kernel"), std::string::npos);
     EXPECT_EQ(count_occurrences(text, "class=\"pipeline-article\""), 2U);
     EXPECT_NE(text.find("<script type=\"application/json\" id=\"suite-raw-data\">"), std::string::npos);
+    EXPECT_NE(text.find("Эффект относительно базового замера"), std::string::npos);
     EXPECT_NE(text.find("\"report_count\":2"), std::string::npos);
 }
 
@@ -298,7 +353,7 @@ TEST(HtmlExportTest, SuiteHtmlExportHandlesEmptySuite) {
     export_html(path, suite);
 
     const std::string text = read_text(path);
-    EXPECT_NE(text.find("No kernels tested."), std::string::npos);
+    EXPECT_NE(text.find("Ядра не запускались."), std::string::npos);
     EXPECT_NE(text.find("empty_suite"), std::string::npos);
 }
 

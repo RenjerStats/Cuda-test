@@ -5,6 +5,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -64,13 +65,15 @@ autotune::AutoTuneResult make_result_fixture() {
         make_candidate(128U, 2U, 2, h2d_second, kernel_second, d2h_second, total_second));
     result.best = result.all_candidates[1].config;
     result.stats = result.all_candidates[1].benchmark.kernel_stats;
-    result.reason = "Selected block=128, grid=2 because it had the lowest median_ms.";
+    result.reason = "Выбрана конфигурация: блок=128, сетка=2, медиана ядра=1.5 потому что у нее минимальная медиана ядра.";
     return result;
 }
 
 std::filesystem::path make_output_path(const std::string& filename) {
+    const std::string build_tag =
+        std::to_string(std::hash<std::string>{}(std::filesystem::current_path().string()));
     const std::filesystem::path root =
-        std::filesystem::temp_directory_path() / "cuda_test_reporting_unit";
+        std::filesystem::temp_directory_path() / "cuda_test_reporting_unit" / build_tag;
     std::filesystem::create_directories(root);
     return root / filename;
 }
@@ -120,6 +123,19 @@ pipeline::PipelineReport make_no_stage_diagnose_report() {
         .device(6)
         .diagnose()
         .run();
+}
+
+pipeline::PipelineReport make_partial_fingerprint_report() {
+    analysis::KernelFingerprint fingerprint;
+    fingerprint.transfer_compute_ratio = 1.25;
+    fingerprint.cv = 0.08;
+    fingerprint.block_sensitivity = 1.1;
+
+    return pipeline::detail::PipelineReportBuilder()
+        .kernel_name("partial_metrics_pipeline")
+        .device_id(7)
+        .diagnose(true, fingerprint)
+        .build();
 }
 
 TEST(ExportTest, BenchmarkCsvExportWritesHeaderAndSummaryRow) {
@@ -230,6 +246,40 @@ TEST(ExportTest, PipelineJsonExportIncludesDiagnoseEnvelopeWhenEnabledWithoutTim
     EXPECT_EQ(text.find("\"fingerprint\":"), std::string::npos);
 }
 
+TEST(ExportTest, PipelineJsonExportUsesNullForUnavailableRuntimeMetrics) {
+    const std::filesystem::path path = make_output_path("pipeline_partial_metrics.json");
+
+    export_json(path, make_partial_fingerprint_report());
+
+    const std::string text = read_text(path);
+    EXPECT_NE(text.find("\"fingerprint\":"), std::string::npos);
+    EXPECT_NE(text.find("\"occupancy\":null"), std::string::npos);
+    EXPECT_NE(text.find("\"bandwidth_utilization\":null"), std::string::npos);
+    EXPECT_NE(text.find("\"num_regs\":null"), std::string::npos);
+    EXPECT_NE(text.find("\"local_size_bytes\":null"), std::string::npos);
+}
+
+TEST(ExportTest, PipelineCsvExportLeavesUnavailableRuntimeMetricsBlank) {
+    const std::filesystem::path path = make_output_path("pipeline_partial_metrics.csv");
+
+    export_csv(path, make_partial_fingerprint_report());
+
+    const std::vector<std::string> lines = read_lines(path);
+    ASSERT_EQ(lines.size(), 2U);
+
+    const std::vector<std::string> row = split_csv_row(lines[1]);
+    ASSERT_EQ(row.size(), 35U);
+    EXPECT_EQ(row[24], "1.25");
+    EXPECT_TRUE(row[25].empty());
+    EXPECT_TRUE(row[26].empty());
+    EXPECT_EQ(row[27], "0.080000000000000002");
+    EXPECT_EQ(row[28], "1.1000000000000001");
+    EXPECT_TRUE(row[29].empty());
+    EXPECT_TRUE(row[30].empty());
+    EXPECT_TRUE(row[31].empty());
+    EXPECT_TRUE(row[32].empty());
+}
+
 TEST(ExportTest, PipelineMemberDelegationMatchesReportingOutput) {
     const std::filesystem::path direct_json = make_output_path("pipeline_direct.json");
     const std::filesystem::path member_json = make_output_path("pipeline_member.json");
@@ -299,7 +349,7 @@ TEST(ExportTest, AutoTuneJsonExportWritesStructuredSummary) {
     const std::string text = read_text(path);
     EXPECT_NE(text.find("\"candidate_count\":2"), std::string::npos);
     EXPECT_NE(text.find("\"winner_index\":1"), std::string::npos);
-    EXPECT_NE(text.find("\"reason\":\"Selected block=128, grid=2 because it had the lowest median_ms.\""),
+    EXPECT_NE(text.find("\"reason\":\"Выбрана конфигурация: блок=128, сетка=2, медиана ядра=1.5 потому что у нее минимальная медиана ядра.\""),
               std::string::npos);
     EXPECT_NE(text.find("\"grid_wave_multiplier\":2"), std::string::npos);
     EXPECT_NE(text.find("\"is_best\":true"), std::string::npos);

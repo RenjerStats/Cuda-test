@@ -55,6 +55,27 @@ endif()
 list(APPEND _config_args "-DCMAKE_PREFIX_PATH=${INSTALL_PREFIX}")
 list(APPEND _config_args "-DCUDA_TEST_SOURCE_DIR=${PROJECT_SOURCE_DIR}")
 
+if(TEST_KIND MATCHES "^fetch_content")
+  find_program(GIT_EXECUTABLE git REQUIRED)
+
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" -C "${PROJECT_SOURCE_DIR}" rev-parse HEAD
+    RESULT_VARIABLE _git_result
+    OUTPUT_VARIABLE _git_revision
+    ERROR_VARIABLE _git_stderr
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  if(NOT _git_result EQUAL 0)
+    message(FATAL_ERROR "Failed to resolve git revision for FetchContent smoke test:\n${_git_stderr}")
+  endif()
+
+  string(REPLACE "\\" "/" _repo_path "${PROJECT_SOURCE_DIR}")
+  string(REPLACE " " "%20" _repo_path "${_repo_path}")
+
+  list(APPEND _config_args "-DCUDA_TEST_GIT_REPOSITORY=file:///${_repo_path}")
+  list(APPEND _config_args "-DCUDA_TEST_GIT_TAG=${_git_revision}")
+endif()
+
 if(DEFINED REQUIRED_VERSION)
   list(APPEND _config_args "-DCUDA_TEST_REQUIRED_VERSION=${REQUIRED_VERSION}")
 endif()

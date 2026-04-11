@@ -67,16 +67,48 @@ inline void write_launch_config_json(std::ostream& stream, const core::KernelLau
            << ",\"device_id\":" << config.device_id << '}';
 }
 
+inline void write_optional_double_json(std::ostream& stream, double value, bool available) {
+    if (available) {
+        stream << format_double(value);
+    } else {
+        stream << "null";
+    }
+}
+
+inline void write_optional_int_json(std::ostream& stream, int value, bool available) {
+    if (available) {
+        stream << value;
+    } else {
+        stream << "null";
+    }
+}
+
+inline void write_optional_size_json(std::ostream& stream, std::size_t value, bool available) {
+    if (available) {
+        stream << value;
+    } else {
+        stream << "null";
+    }
+}
+
 inline void write_fingerprint_json(std::ostream& stream, const analysis::KernelFingerprint& fingerprint) {
     stream << "{\"transfer_compute_ratio\":" << format_double(fingerprint.transfer_compute_ratio)
-           << ",\"occupancy\":" << format_double(fingerprint.occupancy)
-           << ",\"bandwidth_utilization\":" << format_double(fingerprint.bandwidth_utilization)
-           << ",\"cv\":" << format_double(fingerprint.cv)
+           << ",\"occupancy\":";
+    write_optional_double_json(stream, fingerprint.occupancy, fingerprint.has_occupancy);
+    stream << ",\"bandwidth_utilization\":";
+    write_optional_double_json(
+        stream, fingerprint.bandwidth_utilization, fingerprint.has_bandwidth_utilization);
+    stream << ",\"cv\":" << format_double(fingerprint.cv)
            << ",\"block_sensitivity\":" << format_double(fingerprint.block_sensitivity)
-           << ",\"scaling_exponent\":" << format_double(fingerprint.scaling_exponent)
-           << ",\"num_regs\":" << fingerprint.num_regs
-           << ",\"local_size_bytes\":" << fingerprint.local_size_bytes
-           << ",\"shared_size_bytes\":" << fingerprint.shared_size_bytes << '}';
+           << ",\"scaling_exponent\":";
+    write_optional_double_json(stream, fingerprint.scaling_exponent, fingerprint.has_scaling_exponent);
+    stream << ",\"num_regs\":";
+    write_optional_int_json(stream, fingerprint.num_regs, fingerprint.has_kernel_attributes);
+    stream << ",\"local_size_bytes\":";
+    write_optional_size_json(stream, fingerprint.local_size_bytes, fingerprint.has_kernel_attributes);
+    stream << ",\"shared_size_bytes\":";
+    write_optional_size_json(stream, fingerprint.shared_size_bytes, fingerprint.has_kernel_attributes);
+    stream << '}';
 }
 
 inline void write_recommendation_json(std::ostream& stream, const analysis::Recommendation& recommendation) {
