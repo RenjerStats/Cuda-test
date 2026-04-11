@@ -37,7 +37,7 @@ include(FetchContent)
 
 FetchContent_Declare(
   cuda_test
-  GIT_REPOSITORY https://github.com/<user>/cuda_test.git
+  GIT_REPOSITORY https://github.com/RenjerStats/Cuda-test.git
   GIT_TAG v0.2.0
 )
 FetchContent_MakeAvailable(cuda_test)
