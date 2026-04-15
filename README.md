@@ -1,16 +1,16 @@
 # CUDA Test
 
-## Authors and contributors
+# Authors and contributors
 
-The main contributor recorded in the Git history of this repository is Pavel Romankov.
+The main contributor Pavel Romankov.
 
-The repository is open to further academic and engineering contributions through issues, reviews, and pull requests.
+The advisor and contributor Vladimir A. Parkhomenko., Seniour Lecturer of SPbPU ICSC.
 
-## Introduction
+# Introduction
 
-`cuda_test` is a C++17/CUDA header-only library for isolated CUDA kernel validation, benchmarking, autotuning, diagnostics, and report export.
+This is a C++17/CUDA header-only library for isolated CUDA kernel validation, benchmarking, autotuning, diagnostics, and report export.
 
-The repository contains the library source code, CMake integration, tests, benchmarks, examples, and generated demo reports. It is intended for educational and practical use when comparing CUDA kernels, checking correctness against host-side references, and exporting reproducible results.
+The project contains the library source code, CMake integration, tests, benchmarks, examples, and generated demo reports for reproducible CUDA kernel evaluation.
 
 The library packages the common engineering loop around one kernel:
 
@@ -20,7 +20,7 @@ The library packages the common engineering loop around one kernel:
 - generate high-level diagnostics
 - export results as CSV, JSON, and self-contained HTML
 
-## Instruction
+# Instruction
 
 ### What the library provides
 
@@ -179,21 +179,20 @@ The benchmarking and autotuning flow is intentionally conservative:
 - `benchmarks/`: benchmark runners
 - `reports/demo/full-workflow/`: generated demo artifacts kept as public examples
 
-## License
+# License
 
-This repository is distributed under the MIT License. See [`LICENSE`](LICENSE).
+MIT License. See [`LICENSE`](LICENSE).
 
-The repository does not bundle third-party datasets. If external datasets are used together with this project, they remain under the original licenses specified by their respective authors and sources.
+Input datasets used in this repository or together with this project remain under the original licenses specified by their respective authors and sources.
 
-Third-party tools and libraries used during build, testing, or integration also remain under their own licenses.
+Third-party tools and libraries used during build, testing, or integration remain under their own licenses.
 
-## Warranty
+# Warranty
 
-The software is under active development and is provided on an "as is" basis. The authors provide no warranty regarding fitness for a particular purpose, correctness in every environment, or uninterrupted operation.
+The developed software is in progress. Authors give no warranty.
 
-## References
+# References
 
 - NVIDIA CUDA Documentation: <https://docs.nvidia.com/cuda/>
-- CMake Documentation: <https://cmake.org/documentation/>
 - GoogleTest Documentation: <https://google.github.io/googletest/>
 - Google Benchmark repository: <https://github.com/google/benchmark>
