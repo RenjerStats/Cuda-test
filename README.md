@@ -1,6 +1,16 @@
-# cuda_test
+# CUDA Test
 
-`cuda_test` is a C++17/CUDA header-only library for isolated CUDA kernel validation, benchmarking, autotuning, diagnostics, and report export.
+# Authors and contributors
+
+The main contributor Pavel Romankov.
+
+The advisor and contributor Vladimir A. Parkhomenko., Seniour Lecturer of SPbPU ICSC.
+
+# Introduction
+
+This is a C++17/CUDA header-only library for isolated CUDA kernel validation, benchmarking, autotuning, diagnostics, and report export.
+
+The project contains the library source code, CMake integration, tests, benchmarks, examples, and generated demo reports for reproducible CUDA kernel evaluation.
 
 The library packages the common engineering loop around one kernel:
 
@@ -10,7 +20,9 @@ The library packages the common engineering loop around one kernel:
 - generate high-level diagnostics
 - export results as CSV, JSON, and self-contained HTML
 
-## What The Library Provides
+# Instruction
+
+### What the library provides
 
 `cuda_test` is organized around seven public modules:
 
@@ -24,11 +36,11 @@ The library packages the common engineering loop around one kernel:
 
 The main public umbrella header is [`include/cuda_test/cuda_test.hpp`](include/cuda_test/cuda_test.hpp).
 
-## Integration
+### Integration
 
 `cuda_test` is packaged as an `INTERFACE` CMake target and is consumer-facing header-only.
 
-### `FetchContent`
+#### `FetchContent`
 
 This is the simplest setup once the repository is published on GitHub. Tests, benchmarks, and examples are `OFF` by default for dependency use.
 
@@ -46,7 +58,7 @@ add_executable(my_app main.cpp)
 target_link_libraries(my_app PRIVATE cuda_test::cuda_test)
 ```
 
-### `add_subdirectory`
+#### `add_subdirectory`
 
 Use this when the library is vendored into another repository.
 
@@ -59,7 +71,7 @@ target_link_libraries(my_app PRIVATE cuda_test::cuda_test)
 
 If you want the optional `cuda_test::testing` target in this mode, make `GTest::gtest` available in the parent project before `add_subdirectory(...)`.
 
-### `find_package`
+#### `find_package`
 
 Use this after installation into a CMake-visible prefix.
 
@@ -79,7 +91,7 @@ find_package(GTest REQUIRED)
 target_link_libraries(my_test PRIVATE cuda_test::testing)
 ```
 
-## Minimal Example
+### Minimal example
 
 ```cpp
 #include "cuda_test/cuda_test.hpp"
@@ -109,7 +121,7 @@ report.to_json("report.json");
 report.to_csv("report.csv");
 ```
 
-## Building This Repository
+### Building this repository
 
 Requirements:
 
@@ -134,7 +146,7 @@ cmake --preset cuda
 cmake --build --preset cuda
 ```
 
-## Demo Workflow
+### Demo workflow
 
 The repository includes an end-to-end example in [`examples/full_workflow_demo.cu`](examples/full_workflow_demo.cu).
 
@@ -149,7 +161,7 @@ It demonstrates:
 
 Generated demo artifacts live under [`reports/demo/full-workflow`](reports/demo/full-workflow).
 
-## Notes On Benchmarking
+### Notes on benchmarking
 
 The benchmarking and autotuning flow is intentionally conservative:
 
@@ -158,7 +170,7 @@ The benchmarking and autotuning flow is intentionally conservative:
 - the default measured series uses 30 runs
 - summary metrics include mean, median, p95, CI95, and coefficient of variation
 
-## Repository Layout
+### Repository layout
 
 - `include/`: public headers
 - `cmake/`: package config and helper modules
@@ -167,6 +179,20 @@ The benchmarking and autotuning flow is intentionally conservative:
 - `benchmarks/`: benchmark runners
 - `reports/demo/full-workflow/`: generated demo artifacts kept as public examples
 
-## License
+# License
 
-This repository is distributed under the MIT License. See [`LICENSE`](LICENSE).
+MIT License. See [`LICENSE`](LICENSE).
+
+Input datasets used in this repository or together with this project remain under the original licenses specified by their respective authors and sources.
+
+Third-party tools and libraries used during build, testing, or integration remain under their own licenses.
+
+# Warranty
+
+The developed software is in progress. Authors give no warranty.
+
+# References
+
+- NVIDIA CUDA Documentation: <https://docs.nvidia.com/cuda/>
+- GoogleTest Documentation: <https://google.github.io/googletest/>
+- Google Benchmark repository: <https://github.com/google/benchmark>
