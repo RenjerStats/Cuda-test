@@ -1,0 +1,70 @@
+name: CUDA tests (simulated H100)
+
+# Optional, non-required check. The hosted runners have no GPU, so this builds
+# the library tests with CUDA enabled and runs them, including the kernel
+# launch tests that skip themselves when no device is visible, on a simulated
+# NVIDIA H100 (https://github.com/pantheongpu/pantheonsim). A simulator cannot
+# reproduce hardware-specific behaviour or timing, so it complements real-GPU
+# testing and does not replace it.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "include/**"
+      - "tests/**"
+      - "CMakeLists.txt"
+      - "cmake/**"
+      - ".github/workflows/gpu-sim.yml"
+
+concurrency:
+  group: gpu-sim-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  cuda-sim:
+    name: CUDA 13.0, simulated H100
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Set up the simulated GPU and CUDA toolkit
+        uses: pantheongpu/setup-pantheonsim@deff5781e8adfd83dec98dd5242dcbc96a564773 # v0.1.10
+        with:
+          gpu: nvidia/h100
+          cuda-toolkit: "13.0"
+
+      # The simulator runs PTX, so build 90-virtual, and it needs a shared
+      # CUDA runtime.
+      - name: Configure
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCUDA_TEST_ENABLE_CUDA=ON \
+            -DCUDA_TEST_BUILD_TESTS=ON \
+            -DCMAKE_CUDA_ARCHITECTURES=90-virtual \
+            -DCMAKE_CUDA_RUNTIME_LIBRARY=Shared
+
+      - name: Build
+        run: vgpu run --preload cmake --build build -j3
+
+      # Skipped tests and a missing device must fail the job: the CUDA tests
+      # call GTEST_SKIP when no device is visible. The cmake_* tests only
+      # configure small consumer projects and are not GPU tests, so they are
+      # left out.
+      - name: Test
+        run: |
+          set -o pipefail
+          vgpu run ctest --test-dir build -E '^cmake_' --no-tests=error \
+            --output-on-failure -V 2>&1 | tee ctest.log
+          grep -q 'virtual GPU platform initialized' ctest.log
+          grep -q '100% tests passed' ctest.log
+          ! grep -E 'VirtualGPU error|No CUDA device|\[  SKIPPED|\*\*\*Skipped|Not Run|\[  FAILED' ctest.log
+          echo "$(grep -cE 'Test +#[0-9]+: .*Passed' ctest.log) tests passed"
